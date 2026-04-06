@@ -13,13 +13,13 @@ import { cookies } from 'next/headers'
 export async function getSupabaseServerClient() {
   const cookieStore = await cookies()
 
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) =>
+      setAll(cookiesToSet: any) {
+        cookiesToSet.forEach(({ name, value, options }: any) =>
           cookieStore.set(name, value, options)
         )
       },
@@ -31,6 +31,28 @@ export async function getSupabaseServerClient() {
 export type Database = {
   public: {
     Tables: {
+      profile: {
+        Row: {
+          id: string
+          username: string | null
+          bio: string | null
+          avatar_url: string | null
+          cover_url: string | null
+          created_at: string
+        }
+        Insert: {
+          username?: string | null
+          bio?: string | null
+          avatar_url?: string | null
+          cover_url?: string | null
+        }
+        Update: {
+          username?: string | null
+          bio?: string | null
+          avatar_url?: string | null
+          cover_url?: string | null
+        }
+      }
       gears: {
         Row: {
           id: string
@@ -49,7 +71,7 @@ export type Database = {
           category?: string | null
           image_url?: string | null
           purchase_date?: string | null
-          status?: 'active' | 'retired'
+          status?: 'active' | 'retired' | null
           notes?: string | null
         }
         Update: {
@@ -58,7 +80,7 @@ export type Database = {
           category?: string | null
           image_url?: string | null
           purchase_date?: string | null
-          status?: 'active' | 'retired'
+          status?: 'active' | 'retired' | null
           notes?: string | null
         }
       }
@@ -67,6 +89,7 @@ export type Database = {
           id: string
           platform: string
           url: string
+          display_name: string | null
           icon: string | null
           display_order: number | null
           created_at: string
@@ -74,12 +97,14 @@ export type Database = {
         Insert: {
           platform: string
           url: string
+          display_name?: string | null
           icon?: string | null
           display_order?: number | null
         }
         Update: {
           platform?: string
           url?: string
+          display_name?: string | null
           icon?: string | null
           display_order?: number | null
         }
@@ -88,27 +113,24 @@ export type Database = {
         Row: {
           id: string
           title: string
-          genre: string | null
-          status: 'playing' | 'completed' | 'plan_to_play' | 'dropped' | null
-          hours_played: number | null
-          profile_links: any | null
+          profile_url: string | null
+          image_url: string | null
+          status: 'online' | 'offline' | null
           notes: string | null
           created_at: string
         }
         Insert: {
           title: string
-          genre?: string | null
-          status?: 'playing' | 'completed' | 'plan_to_play' | 'dropped'
-          hours_played?: number | null
-          profile_links?: any | null
+          profile_url?: string | null
+          image_url?: string | null
+          status?: 'online' | 'offline' | null
           notes?: string | null
         }
         Update: {
           title?: string
-          genre?: string | null
-          status?: 'playing' | 'completed' | 'plan_to_play' | 'dropped'
-          hours_played?: number
-          profile_links?: any | null
+          profile_url?: string | null
+          image_url?: string | null
+          status?: 'online' | 'offline' | null
           notes?: string | null
         }
       }

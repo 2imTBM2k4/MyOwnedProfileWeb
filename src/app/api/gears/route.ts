@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const supabase = await getSupabaseServerClient()
   const body = await request.json()
-  const { data, error } = await supabase.from('gears').insert(body).select()
+  const { data, error } = await supabase.from('gears').insert(body as any).select()
   if (error) {
     console.error('GEARS INSERT ERROR:', JSON.stringify(error))
     return NextResponse.json({ error: error.message }, { status: 500 })

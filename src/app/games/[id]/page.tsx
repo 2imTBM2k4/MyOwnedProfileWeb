@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { getSupabaseServerClient } from '@/lib/supabase'
 
 type Game = {
   title: string
@@ -10,13 +10,13 @@ type Game = {
 }
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const supabase = await createClient()
+  const supabase = await getSupabaseServerClient()
   const { data } = await supabase.from('games').select('title').eq('id', params.id).single()
   return { title: data?.title || 'Game Profile' }
 }
 
 export default async function GameProfilePage({ params }: { params: { id: string } }) {
-  const supabase = await createClient()
+  const supabase = await getSupabaseServerClient()
   const { data, error } = await supabase.from('games').select('*').eq('id', params.id).single()
 
   if (error || !data) {

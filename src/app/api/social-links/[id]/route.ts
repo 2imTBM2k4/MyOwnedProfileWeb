@@ -19,7 +19,7 @@ export async function PATCH(
 ) {
   const supabase = await getSupabaseServerClient()
   const body = await request.json()
-  const { data, error } = await supabase.from('social_links').update(body).eq('id', params.id).select()
+  const { data, error } = await supabase.from('social_links').update(body as any).eq('id', params.id).select()
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

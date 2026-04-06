@@ -20,7 +20,7 @@ export async function PATCH(
   const supabase = await getSupabaseServerClient()
   const body = await request.json()
   console.log('PATCH games body:', JSON.stringify(body))
-  const { data, error } = await supabase.from('games').update(body).eq('id', params.id).select()
+  const { data, error } = await supabase.from('games').update(body as any).eq('id', params.id).select()
   if (error) {
     console.error('PATCH games error:', JSON.stringify(error))
     return NextResponse.json({ error: error.message }, { status: 500 })
