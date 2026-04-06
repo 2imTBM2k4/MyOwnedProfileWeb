@@ -70,7 +70,7 @@ const GAME_STATUS_LABELS: Record<string, string> = {
 const isOnline = (status: string | null) =>
   status === 'online' || status === 'playing'
 
-type Tab = 'setup' | 'games' | 'social'
+type Tab = 'setup' | 'games'
 
 export default function HomePage() {
   const [tab, setTab] = useState<Tab>('setup')
@@ -89,7 +89,6 @@ export default function HomePage() {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'setup', label: 'GAMING SETUP' },
     { key: 'games', label: 'GAMES' },
-    { key: 'social', label: 'SOCIAL MEDIA' },
   ]
 
   const username = profile?.username || 'SILENTBOIZ'
@@ -134,19 +133,22 @@ export default function HomePage() {
 
           {/* Social quick links */}
           {socialLinks.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {socialLinks.map(s => (
-                <Link
-                  key={s.id}
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-black/30 backdrop-blur-sm text-xs text-slate-200 hover:bg-blue-500/20 hover:border-blue-400/40 transition-all"
-                >
-                  <SocialIcon platform={s.platform} size={12} />
-                  {s.display_name || s.platform}
-                </Link>
-              ))}
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Connect</h3>
+              <div className="flex flex-wrap gap-2">
+                {socialLinks.map(s => (
+                  <Link
+                    key={s.id}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 bg-black/30 backdrop-blur-sm text-sm text-slate-200 hover:bg-blue-500/20 hover:border-blue-400/40 hover:text-white transition-all group"
+                  >
+                    <SocialIcon platform={s.platform} size={16} className="group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">{s.display_name || s.platform}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 
@@ -327,35 +329,6 @@ export default function HomePage() {
             </section>
           )}
 
-          {/* Social */}
-          {tab === 'social' && (
-            <section className="pb-16">
-              {socialLinks.length === 0 ? (
-                <p className="text-slate-400 text-center py-16">No social links added yet.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
-                  {socialLinks.map(s => (
-                    <Link
-                      key={s.id}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between px-5 py-4 rounded-xl border border-white/10 bg-black/40 backdrop-blur-sm hover:border-blue-500/40 hover:bg-black/50 transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <SocialIcon platform={s.platform} size={18} className="text-slate-300" />
-                        <div>
-                          <p className="font-semibold text-white">{s.display_name || s.platform}</p>
-                          {s.display_name && <p className="text-xs text-slate-400">{s.platform}</p>}
-                        </div>
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-slate-400" />
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
         </div>
 
         <footer className="relative z-10 border-t border-white/10 py-6 text-center text-xs text-slate-500">
