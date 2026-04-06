@@ -176,9 +176,15 @@ Create `.env.local` in the project root:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-project-url-here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+ADMIN_PASSWORD=your-secure-password-here
 ```
 
-Replace with your actual Supabase credentials.
+Replace with your actual Supabase credentials and choose a strong admin password.
+
+⚠️ **Important**: 
+- Use `ADMIN_PASSWORD` (NOT `NEXT_PUBLIC_ADMIN_PASSWORD`)
+- This keeps the password server-side only for better security
+- Choose a strong password with uppercase, lowercase, numbers, and symbols
 
 ### 4. Run Development Server
 
@@ -216,6 +222,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - Add:
      - `NEXT_PUBLIC_SUPABASE_URL` = your Supabase URL
      - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = your Supabase anon key
+     - `ADMIN_PASSWORD` = your admin password (e.g., `MySecurePass123!`)
+   - ⚠️ Use `ADMIN_PASSWORD` (NOT `NEXT_PUBLIC_ADMIN_PASSWORD`) for better security
    - Click "Deploy"
 
 4. **Done!** 
@@ -243,6 +251,7 @@ vercel
 # Add environment variables
 vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+vercel env add ADMIN_PASSWORD
 
 # Deploy to production
 vercel --prod
@@ -331,36 +340,84 @@ AboutMe/
    - Display name will auto-extract from URL (or enter manually)
 4. Click "Create"
 
-## 🔒 Security Notes
+## 🔒 Security & Admin Access
 
-⚠️ **Important**: The admin panel (`/admin`) currently has no authentication. For production use, you should:
+### Accessing Admin Panel
 
-1. Add authentication (Supabase Auth, NextAuth.js, or simple password protection)
-2. Restrict API routes to authenticated users only
-3. Update RLS policies in Supabase for better security
-
-Example simple password protection:
-```typescript
-// In admin/page.tsx
-const [password, setPassword] = useState('')
-const [authenticated, setAuthenticated] = useState(false)
-
-if (!authenticated) {
-  return (
-    <div>
-      <input 
-        type="password" 
-        value={password}
-        onChange={e => {
-          if (e.target.value === 'your-secret-password') {
-            setAuthenticated(true)
-          }
-        }}
-      />
-    </div>
-  )
-}
+After deployment, access your admin panel at:
 ```
+https://your-project.vercel.app/admin
+```
+
+You'll be prompted to enter a password.
+
+### Password Protection
+
+The admin panel is now protected with **server-side authentication**:
+
+1. **Default Password**: `admin123` (for testing only!)
+2. **Custom Password**: Set via environment variable `ADMIN_PASSWORD`
+
+**Security improvements**:
+- ✅ Password checked server-side (cannot bypass with DevTools)
+- ✅ HTTP-only cookies (protected from XSS)
+- ✅ API routes protected by middleware
+- ✅ Password never exposed to client
+- ✅ Session expires after 24 hours
+
+**To change the password:**
+
+1. In Vercel Dashboard:
+   - Go to your project → Settings → Environment Variables
+   - Add/Edit `ADMIN_PASSWORD` (NOT `NEXT_PUBLIC_ADMIN_PASSWORD`)
+   - Enter your secure password
+   - Redeploy the project
+
+2. In `.env.local` (for local development):
+   ```env
+   ADMIN_PASSWORD=YourSecurePassword123!
+   ```
+
+⚠️ **Important**: Use `ADMIN_PASSWORD` without the `NEXT_PUBLIC_` prefix. This keeps it server-side only.
+
+### Session Management
+
+- Password is checked on login
+- Session is stored in browser's `sessionStorage`
+- You stay logged in until you close the browser tab or click "Logout"
+- No password is stored on the server
+
+### ⚠️ Security Recommendations
+
+For better security in production:
+
+1. **Use a strong password**: Mix of uppercase, lowercase, numbers, and symbols
+2. **Don't share the password**: Keep it private
+3. **Consider upgrading**: For multi-user access, implement proper authentication:
+   - Supabase Auth (email/password, OAuth)
+   - NextAuth.js
+   - Clerk
+   - Auth0
+
+4. **Restrict API routes**: Add authentication checks to API routes
+5. **Update RLS policies**: Tighten Supabase Row Level Security policies
+
+### Current Security Level
+
+✅ Server-side password verification  
+✅ HTTP-only cookies  
+✅ API route protection via middleware  
+✅ Password never exposed to client  
+✅ Session management with expiry  
+⚠️ No rate limiting (can be brute forced)  
+⚠️ No 2FA  
+⚠️ Single password for all admins  
+
+**Security rating**: ⭐⭐⭐☆☆ (3/5) - Good for personal sites
+
+For detailed security information, see [SECURITY.md](SECURITY.md)
+
+This is suitable for personal sites. For production/team use, implement proper authentication (Supabase Auth, NextAuth.js, Clerk).
 
 ## 🐛 Troubleshooting
 

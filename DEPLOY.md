@@ -5,7 +5,7 @@
 ✅ Đã có tài khoản GitHub  
 ✅ Đã có tài khoản Vercel (đăng ký miễn phí tại [vercel.com](https://vercel.com))  
 ✅ Code đã chạy được trên local (`npm run dev`)  
-✅ Đã setup Supabase xong  
+✅ Đã setup Supabase xong  git 
 
 ## Bước 1: Push Code Lên GitHub
 
@@ -38,7 +38,7 @@ git push -u origin main
 Trong màn hình "Configure Project":
 
 1. Mở rộng phần **"Environment Variables"**
-2. Thêm 2 biến:
+2. Thêm 3 biến:
 
 ```
 Name: NEXT_PUBLIC_SUPABASE_URL
@@ -46,7 +46,12 @@ Value: https://xxx.supabase.co (copy từ Supabase)
 
 Name: NEXT_PUBLIC_SUPABASE_ANON_KEY  
 Value: eyJxxx... (copy từ Supabase → Settings → API)
+
+Name: ADMIN_PASSWORD
+Value: MatKhauCuaBan123! (chọn mật khẩu mạnh)
 ```
+
+⚠️ **Quan trọng**: Dùng `ADMIN_PASSWORD` (KHÔNG phải `NEXT_PUBLIC_ADMIN_PASSWORD`) để bảo mật hơn!
 
 3. Click **"Deploy"**
 
@@ -61,8 +66,70 @@ Value: eyJxxx... (copy từ Supabase → Settings → API)
 ✅ Mở link website  
 ✅ Kiểm tra trang chủ hiển thị đúng  
 ✅ Vào `/admin` để test CRUD  
+✅ Nhập mật khẩu để login vào admin panel  
 ✅ Test upload ảnh  
 ✅ Test trên mobile  
+
+## Truy Cập Admin Panel
+
+Sau khi deploy xong, truy cập admin tại:
+```
+https://your-project.vercel.app/admin
+```
+
+Bạn sẽ thấy màn hình login. Nhập mật khẩu bạn đã set trong `NEXT_PUBLIC_ADMIN_PASSWORD`.
+
+**Mật khẩu mặc định** (nếu không set): `admin123`
+
+⚠️ **Quan trọng**: Đổi mật khẩu mặc định ngay!
+
+### Bảo Mật Mới (Version 2)
+
+✅ Mật khẩu được check ở server (không thể bypass bằng DevTools)  
+✅ Dùng HTTP-only cookies (bảo vệ khỏi XSS)  
+✅ API routes được bảo vệ bởi middleware  
+✅ Mật khẩu không bao giờ lộ ra client  
+✅ Session tự động hết hạn sau 24 giờ  
+
+**Mức độ bảo mật**: ⭐⭐⭐☆☆ (3/5) - Tốt cho personal website
+
+Chi tiết về bảo mật: Xem file [SECURITY.md](SECURITY.md)
+
+### Đổi Mật Khẩu Admin
+
+1. Vào Vercel Dashboard → Project của bạn
+2. Click **Settings** → **Environment Variables**
+3. Tìm `ADMIN_PASSWORD` (KHÔNG phải `NEXT_PUBLIC_ADMIN_PASSWORD`)
+4. Click **Edit** → Nhập mật khẩu mới
+5. Click **Save**
+6. **Redeploy** project (Deployments → ... → Redeploy)
+
+### Quên Mật Khẩu?
+
+Nếu quên mật khẩu:
+1. Vào Vercel → Settings → Environment Variables
+2. Xem giá trị của `ADMIN_PASSWORD`
+3. Hoặc đổi sang mật khẩu mới và redeploy
+
+## Kiểm Tra Bảo Mật
+
+### Test 1: Password có lộ không?
+Mở browser console (F12) và gõ:
+```javascript
+console.log(process.env.NEXT_PUBLIC_ADMIN_PASSWORD)
+```
+- Nếu thấy password → ❌ Không an toàn
+- Nếu `undefined` → ✅ An toàn
+
+### Test 2: API có được bảo vệ không?
+Thử gọi API mà không login:
+```bash
+curl -X POST https://your-site.vercel.app/api/games \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test"}'
+```
+- Nếu thành công → ❌ Không an toàn
+- Nếu 401 Unauthorized → ✅ An toàn  
 
 ## Cập Nhật Sau Này
 

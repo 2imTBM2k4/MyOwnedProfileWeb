@@ -194,6 +194,12 @@ function InlineImageUpload({ value, bucket, onChange }: { value: string; bucket:
 }
 
 export default function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
+
   const [tab, setTab] = useState<Tab>('profile')
 
   const [profile, setProfile] = useState<Profile>({ username: '', bio: '', avatar_url: '', cover_url: '' })
@@ -277,10 +283,126 @@ export default function AdminPage() {
     { key: 'social' as Tab, label: 'Social Links', icon: <LinkIcon className="w-4 h-4" /> },
   ]
 
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/auth')
+      if (res.ok) {
+        setAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Server-side password check
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoggingIn(true)
+    setError(false)
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+
+      if (res.ok) {
+        setAuthenticated(true)
+        setPassword('')
+      } else {
+        setError(true)
+      }
+    } catch (error) {
+      console.error('Login failed:', error)
+      setError(true)
+    } finally {
+      setLoggingIn(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth', { method: 'DELETE' })
+      setAuthenticated(false)
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#080d14] text-white flex items-center justify-center">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show login form if not authenticated
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-[#080d14] text-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-[#0d1825] border border-white/10 rounded-xl p-8">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold mb-2">Admin Login</h1>
+              <p className="text-slate-400 text-sm">Enter password to access admin panel</p>
+            </div>
+            
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label className="text-slate-400 text-xs uppercase tracking-wider">Password</Label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  className="bg-[#0a1220] border-white/10 focus:border-blue-500/50 text-white mt-2"
+                  autoFocus
+                  disabled={loggingIn}
+                />
+                {error && (
+                  <p className="text-red-400 text-sm mt-2">❌ Incorrect password</p>
+                )}
+              </div>
+              
+              <Button type="submit" disabled={loggingIn} className="w-full bg-blue-600 hover:bg-blue-500 text-white">
+                {loggingIn ? 'Logging in...' : 'Login'}
+              </Button>
+            </form>
+
+            <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <p className="text-blue-400 text-xs">
+                🔒 Password is checked server-side for security
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#080d14] text-white">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="text-slate-400 hover:text-white"
+          >
+            Logout
+          </Button>
+        </div>
 
         {/* Tabs */}
         <div className="flex border-b border-white/10 mb-8">
