@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Monitor, Mouse, Keyboard, Headphones, Cpu, Gamepad2, Mic, ExternalLink } from 'lucide-react'
+import { Monitor, Mouse, Keyboard, Headphones, Cpu, Gamepad2, Mic, ExternalLink, Github } from 'lucide-react'
 import { SocialIcon } from '@/components/SocialIcon'
+import LoadingScreen from '@/components/LoadingScreen'
 
 type Profile = {
   username: string | null
@@ -34,6 +35,18 @@ type Game = {
   profile_url: string | null
   status: 'online' | 'offline' | null
   image_url?: string | null
+}
+
+type Project = {
+  id: string
+  title: string
+  description: string | null
+  github_url: string | null
+  demo_url: string | null
+  image_url: string | null
+  status: 'active' | 'completed' | null
+  tags: string[] | null
+  created_at: string
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -70,31 +83,61 @@ const GAME_STATUS_LABELS: Record<string, string> = {
 const isOnline = (status: string | null) =>
   status === 'online' || status === 'playing'
 
-type Tab = 'setup' | 'games'
+type Tab = 'setup' | 'games' | 'projects'
 
 export default function HomePage() {
   const [tab, setTab] = useState<Tab>('setup')
+  const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [gears, setGears] = useState<Gear[]>([])
   const [games, setGames] = useState<Game[]>([])
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
 
   useEffect(() => {
-    fetch('/api/profile').then(r => r.json()).then(d => d && setProfile(d))
-    fetch('/api/gears').then(r => r.json()).then(setGears)
-    fetch('/api/games').then(r => r.json()).then(setGames)
-    fetch('/api/social-links').then(r => r.json()).then(setSocialLinks)
+    loadData()
   }, [])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      // Load all data in parallel
+      const [profileData, gearsData, gamesData, socialData, projectsData] = await Promise.all([
+        fetch('/api/profile').then(r => r.json()),
+        fetch('/api/gears').then(r => r.json()),
+        fetch('/api/games').then(r => r.json()),
+        fetch('/api/social-links').then(r => r.json()),
+        fetch('/api/projects').then(r => r.json()),
+      ])
+      
+      if (profileData) setProfile(profileData)
+      setGears(gearsData || [])
+      setGames(gamesData || [])
+      setSocialLinks(socialData || [])
+      setProjects(Array.isArray(projectsData) ? projectsData : [])
+    } catch (error) {
+      console.error('Failed to load data:', error)
+    } finally {
+      // Add a small delay for smooth transition
+      setTimeout(() => setLoading(false), 500)
+    }
+  }
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'setup', label: 'GAMING SETUP' },
     { key: 'games', label: 'GAMES' },
+    { key: 'projects', label: 'PROJECTS' },
   ]
 
   const username = profile?.username || 'SILENTBOIZ'
   const bio = profile?.bio || 'A tech enthusiast, gamer, and maker.'
   const avatarUrl = profile?.avatar_url
   const coverUrl = profile?.cover_url
+
+  // Loading screen
+  if (loading) {
+    return <LoadingScreen message="Loading..." />
+  }
 
   return (
     <div className="min-h-screen relative text-white">
@@ -132,7 +175,7 @@ export default function HomePage() {
           </div>
 
           {/* Social quick links */}
-          {socialLinks.length > 0 && (
+          {Array.isArray(socialLinks) && socialLinks.length > 0 && (
             <div className="mb-6">
               <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Connect</h3>
               <div className="flex flex-wrap gap-2">
@@ -172,7 +215,7 @@ export default function HomePage() {
           {/* Gaming Setup */}
           {tab === 'setup' && (
             <section className="pb-16">
-              {gears.length === 0 ? (
+              {!Array.isArray(gears) || gears.length === 0 ? (
                 <p className="text-slate-400 text-center py-16">No gear added yet.</p>
               ) : (() => {
                 // Group gears by category
@@ -239,7 +282,7 @@ export default function HomePage() {
           {/* Games */}
           {tab === 'games' && (
             <section className="pb-16">
-              {games.length === 0 ? (
+              {!Array.isArray(games) || games.length === 0 ? (
                 <p className="text-slate-400 text-center py-16">No games added yet.</p>
               ) : (() => {
                 // Group games by status
@@ -326,6 +369,66 @@ export default function HomePage() {
                   </div>
                 )
               })()}
+            </section>
+          )}
+
+          {/* Projects */}
+          {tab === 'projects' && (
+            <section className="pb-16">
+              {!Array.isArray(projects) || projects.length === 0 ? (
+                <p className="text-slate-400 text-center py-16">No projects added yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projects.map(project => (
+                    <div key={project.id} className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all group">
+                      {project.image_url && (
+                        <div className="h-48 overflow-hidden">
+                          <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="p-5">
+                        <h3 className="font-bold text-white text-lg mb-2">{project.title}</h3>
+                        {project.description && (
+                          <p className="text-slate-300 text-sm mb-4 line-clamp-3">{project.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {project.tags?.map(tag => (
+                            <span key={tag} className="px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/20">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          {project.github_url && (
+                            <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors">
+                              <Github className="w-4 h-4" />
+                              <span>GitHub</span>
+                            </a>
+                          )}
+                          {project.demo_url && (
+                            <a href={project.demo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors">
+                              <ExternalLink className="w-4 h-4" />
+                              <span>Demo</span>
+                            </a>
+                          )}
+                        </div>
+                        {project.status && (
+                          <div className="mt-3">
+                            <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${
+                              project.status === 'active'
+                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
+                                : 'bg-slate-700/50 text-slate-400 border border-white/10'
+                            }`}>
+                              {project.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                              {project.status === 'active' ? 'Active' : 'Completed'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
 

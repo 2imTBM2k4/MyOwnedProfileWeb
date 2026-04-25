@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Edit, Trash2, Save, Image as ImageIcon, Gamepad2, Monitor, Link as LinkIcon, Upload, Camera } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, Image as ImageIcon, Gamepad2, Monitor, Link as LinkIcon, Upload, Camera, FileCode } from 'lucide-react'
 import { SocialIcon } from '@/components/SocialIcon'
 import ImageCropper from '@/components/ImageCropper'
 
@@ -15,7 +15,8 @@ type Profile = { username: string; bio: string; avatar_url: string; cover_url: s
 type Gear = { id: string; name: string; brand: string | null; category: string | null; status: 'active' | 'retired' | null; image_url: string | null }
 type Game = { id: string; title: string; profile_url: string | null; status: 'online' | 'offline' | null; image_url: string | null }
 type SocialLink = { id: string; platform: string; url: string; display_name: string | null; display_order: number | null }
-type Tab = 'profile' | 'gears' | 'games' | 'social'
+type Project = { id: string; title: string; description: string | null; github_url: string | null; demo_url: string | null; image_url: string | null; status: 'active' | 'completed' | null; tags: string[] | null; created_at: string }
+type Tab = 'profile' | 'gears' | 'games' | 'social' | 'projects'
 
 const GAME_STATUS_LABELS: Record<string, string> = {
   online: 'Online', offline: 'Offline',
