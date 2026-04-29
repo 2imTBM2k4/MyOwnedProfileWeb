@@ -214,6 +214,8 @@ Create `.env.local` in the project root:
 NEXT_PUBLIC_SUPABASE_URL=your-project-url-here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ADMIN_PASSWORD=your-secure-password-here
+NEXT_PUBLIC_DISCORD_ID=your-discord-id-here
+RAWG_API_KEY=your-rawg-api-key-here
 ```
 
 Replace with your actual Supabase credentials and choose a strong admin password.
@@ -223,6 +225,24 @@ Replace with your actual Supabase credentials and choose a strong admin password
 - Use `ADMIN_PASSWORD` (NOT `NEXT_PUBLIC_ADMIN_PASSWORD`)
 - This keeps the password server-side only for better security
 - Choose a strong password with uppercase, lowercase, numbers, and symbols
+
+**How to get your Discord ID:**
+
+1. Open Discord
+2. Go to **User Settings** → **Advanced**
+3. Enable **Developer Mode**
+4. Right-click your username anywhere
+5. Click **Copy User ID**
+6. Paste it in `.env.local` as `NEXT_PUBLIC_DISCORD_ID`
+
+**How to get RAWG API Key (for automatic game covers):**
+
+1. Go to [https://rawg.io/apidocs](https://rawg.io/apidocs)
+2. Click **Get API Key** and sign up (free)
+3. Complete the developer info form
+4. Copy your API key from the bottom of the page
+5. Paste it in `.env.local` as `RAWG_API_KEY`
+6. Free tier: 20,000 requests/month (more than enough!)
 
 ### 4. Run Development Server
 
@@ -262,10 +282,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
      - `NEXT_PUBLIC_SUPABASE_URL` = your Supabase URL
      - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = your Supabase anon key
      - `ADMIN_PASSWORD` = your admin password (e.g., `MySecurePass123!`)
+     - `NEXT_PUBLIC_DISCORD_ID` = your Discord user ID (see below)
+     - `RAWG_API_KEY` = your RAWG API key (optional, for auto game covers)
    - ⚠️ Use `ADMIN_PASSWORD` (NOT `NEXT_PUBLIC_ADMIN_PASSWORD`) for better security
    - Click "Deploy"
 
-4. **Done!**
+**How to get your Discord ID:**
+
+1. Open Discord → User Settings → Advanced
+2. Enable **Developer Mode**
+3. Right-click your username → **Copy User ID**
+4. Paste it as `NEXT_PUBLIC_DISCORD_ID` in Vercel
+
+5. **Done!**
    - Your site will be live at `https://your-project.vercel.app`
    - Every push to `main` branch will auto-deploy
 
@@ -291,6 +320,7 @@ vercel
 vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 vercel env add ADMIN_PASSWORD
+vercel env add NEXT_PUBLIC_DISCORD_ID
 
 # Deploy to production
 vercel --prod

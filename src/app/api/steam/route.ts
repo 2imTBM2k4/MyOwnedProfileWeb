@@ -3,6 +3,50 @@ import { NextResponse } from "next/server";
 const cache: Record<string, { data: any; ts: number }> = {};
 const CACHE_TTL = 30 * 60 * 1000;
 
+// Convert Steam vanity URL or custom ID to Steam ID 64
+async function resolveSteamId(input: string): Promise<string> {
+  // If already a numeric Steam ID, return it
+  if (/^\d+$/.test(input)) {
+    return input;
+  }
+
+  // Extract vanity name from URL or use input directly
+  let vanityName = input;
+
+  // Handle various Steam URL formats
+  const urlPatterns = [
+    /steamcommunity\.com\/id\/([^\/]+)/,
+    /steamcommunity\.com\/profiles\/([^\/]+)/,
+  ];
+
+  for (const pattern of urlPatterns) {
+    const match = input.match(pattern);
+    if (match) {
+      vanityName = match[1];
+      // If it's already a numeric ID from /profiles/, return it
+      if (/^\d+$/.test(vanityName)) {
+        return vanityName;
+      }
+      break;
+    }
+  }
+
+  // Resolve vanity name to Steam ID using Steam API
+  const key = process.env.STEAM_API_KEY!;
+  const resolveUrl =
+    `https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/` +
+    `?key=${key}&vanityurl=${vanityName}`;
+
+  const response = await fetch(resolveUrl);
+  const data = await response.json();
+
+  if (data.response?.success === 1) {
+    return data.response.steamid;
+  }
+
+  throw new Error(`Could not resolve Steam ID from: ${input}`);
+}
+
 async function fetchSteamStats(appid: string, steamid: string) {
   const cacheKey = `${appid}:${steamid}`;
   const now = Date.now();
@@ -104,9 +148,9 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const appid = searchParams.get("appid");
-  const steamid = searchParams.get("steamid");
+  const steamidInput = searchParams.get("steamid");
 
-  if (!appid || !steamid) {
+  if (!appid || !steamidInput) {
     return NextResponse.json(
       { error: "Missing appid or steamid" },
       { status: 400 },
@@ -114,6 +158,8 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Resolve Steam ID from URL or vanity name
+    const steamid = await resolveSteamId(steamidInput);
     const result = await fetchSteamStats(appid, steamid);
     return NextResponse.json(result);
   } catch (err: any) {

@@ -13,6 +13,9 @@ type HoYoData = {
   abyss?: string;
   chests?: number;
   chest_opened?: number;
+  world_level?: string;
+  shiyu_defense?: number;
+  bangboo?: number;
 };
 
 type Props = {
@@ -33,6 +36,15 @@ const GAME_COLORS: Record<string, string> = {
   hsr: "text-purple-400 border-purple-500/20 bg-purple-500/5",
   hi3: "text-red-400 border-red-500/20 bg-red-500/5",
   zzz: "text-cyan-400 border-cyan-500/20 bg-cyan-500/5",
+};
+
+// Default cover images for HoYoLab games
+const GAME_COVERS: Record<string, string> = {
+  genshin:
+    "https://fastcdn.hoyoverse.com/content-v2/hk4e/113583/1e5b4e2f3f3e3e3e3e3e3e3e3e3e3e3e/image.jpg",
+  hsr: "https://fastcdn.hoyoverse.com/content-v2/hkrpg/113583/1e5b4e2f3f3e3e3e3e3e3e3e3e3e3e3e/image.jpg",
+  hi3: "https://fastcdn.hoyoverse.com/content-v2/bh3/113583/1e5b4e2f3f3e3e3e3e3e3e3e3e3e3e3e/image.jpg",
+  zzz: "https://fastcdn.hoyoverse.com/content-v2/nap/113583/1e5b4e2f3f3e3e3e3e3e3e3e3e3e3e3e/image.jpg",
 };
 
 export default function HoYoStats({ game, uid, server }: Props) {
@@ -84,6 +96,7 @@ export default function HoYoStats({ game, uid, server }: Props) {
   const stats = [
     data.level != null && { label: "Level", value: data.level },
     data.characters != null && { label: "Characters", value: data.characters },
+    data.bangboo != null && { label: "Bangboo", value: data.bangboo },
     data.achievements != null && {
       label: "Achievements",
       value: data.achievements,
@@ -97,6 +110,10 @@ export default function HoYoStats({ game, uid, server }: Props) {
     (data.abyss || data.spiral_abyss) != null && {
       label: "Abyss",
       value: data.abyss || data.spiral_abyss,
+    },
+    data.shiyu_defense != null && {
+      label: "Shiyu Defense",
+      value: data.shiyu_defense,
     },
   ].filter(Boolean) as { label: string; value: string | number }[];
 

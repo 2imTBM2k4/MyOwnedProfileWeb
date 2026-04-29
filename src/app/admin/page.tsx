@@ -32,9 +32,13 @@ import {
   Upload,
   Camera,
   FileCode,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 import ImageCropper from "@/components/ImageCropper";
+import RAWGImagePicker from "@/components/RAWGImagePicker";
 
 type Profile = {
   username: string;
@@ -61,6 +65,7 @@ type Game = {
   hoyolab_server: string | null;
   steam_appid: string | null;
   steam_id: string | null;
+  publisher: string | null;
 };
 type SocialLink = {
   id: string;
@@ -370,6 +375,12 @@ export default function AdminPage() {
     status: "active" as "active" | "retired",
     image_url: "",
   });
+  const [gearSortField, setGearSortField] = useState<"name" | "brand" | null>(
+    null,
+  );
+  const [gearSortDirection, setGearSortDirection] = useState<"asc" | "desc">(
+    "asc",
+  );
 
   const [games, setGames] = useState<Game[]>([]);
   const [gamesLoading, setGamesLoading] = useState(true);
@@ -385,12 +396,19 @@ export default function AdminPage() {
     hoyolab_server: "",
     steam_appid: "",
     steam_id: "",
+    publisher: "",
     platform: "none" as "none" | "steam" | "hoyolab",
     steamSearchQuery: "",
     steamSearchResults: [] as SteamSearchResult[],
     steamSearchLoading: false,
     steamSearchError: null as string | null,
   });
+  const [gameSortField, setGameSortField] = useState<
+    "title" | "publisher" | null
+  >(null);
+  const [gameSortDirection, setGameSortDirection] = useState<"asc" | "desc">(
+    "asc",
+  );
 
   const steamDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -558,6 +576,7 @@ export default function AdminPage() {
       hoyolab_server: gameForm.hoyolab_server || null,
       steam_appid: gameForm.steam_appid || null,
       steam_id: gameForm.steam_id || null,
+      publisher: gameForm.publisher || null,
     });
     gameEditId
       ? await fetch(`/api/games/${gameEditId}`, { method: "PATCH", body })
@@ -574,6 +593,7 @@ export default function AdminPage() {
       hoyolab_server: "",
       steam_appid: "",
       steam_id: "",
+      publisher: "",
       platform: "none",
       steamSearchQuery: "",
       steamSearchResults: [],
@@ -594,6 +614,7 @@ export default function AdminPage() {
       hoyolab_server: "",
       steam_appid: "",
       steam_id: "",
+      publisher: "",
       platform: "none",
       steamSearchQuery: "",
       steamSearchResults: [],
@@ -619,6 +640,7 @@ export default function AdminPage() {
       hoyolab_server: g.hoyolab_server || "",
       steam_appid: g.steam_appid || "",
       steam_id: g.steam_id || "",
+      publisher: g.publisher || "",
       platform,
       steamSearchQuery: "",
       steamSearchResults: [],
@@ -631,6 +653,68 @@ export default function AdminPage() {
     if (!confirm("Delete this game?")) return;
     await fetch(`/api/games/${id}`, { method: "DELETE" });
     fetchGames();
+  };
+
+  // Sorting functions
+  const handleGearSort = (field: "name" | "brand") => {
+    if (gearSortField === field) {
+      // Toggle direction
+      setGearSortDirection(gearSortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setGearSortField(field);
+      setGearSortDirection("asc");
+    }
+  };
+
+  const handleGameSort = (field: "title" | "publisher") => {
+    if (gameSortField === field) {
+      // Toggle direction
+      setGameSortDirection(gameSortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setGameSortField(field);
+      setGameSortDirection("asc");
+    }
+  };
+
+  const getSortedGears = () => {
+    if (!gearSortField) return gears;
+    return [...gears].sort((a, b) => {
+      const aVal = (a[gearSortField] || "").toLowerCase();
+      const bVal = (b[gearSortField] || "").toLowerCase();
+      if (gearSortDirection === "asc") {
+        return aVal.localeCompare(bVal);
+      } else {
+        return bVal.localeCompare(aVal);
+      }
+    });
+  };
+
+  const getSortedGames = () => {
+    if (!gameSortField) return games;
+    return [...games].sort((a, b) => {
+      const aVal = (a[gameSortField] || "").toLowerCase();
+      const bVal = (b[gameSortField] || "").toLowerCase();
+      if (gameSortDirection === "asc") {
+        return aVal.localeCompare(bVal);
+      } else {
+        return bVal.localeCompare(aVal);
+      }
+    });
+  };
+
+  const getSortIcon = (
+    field: string,
+    currentField: string | null,
+    direction: "asc" | "desc",
+  ) => {
+    if (field !== currentField) {
+      return <ArrowUpDown className="w-3.5 h-3.5 ml-1 opacity-40" />;
+    }
+    return direction === "asc" ? (
+      <ArrowUp className="w-3.5 h-3.5 ml-1" />
+    ) : (
+      <ArrowDown className="w-3.5 h-3.5 ml-1" />
+    );
   };
 
   const handleSocialSubmit = async (e: React.FormEvent) => {
@@ -1029,10 +1113,22 @@ export default function AdminPage() {
                 <TableHeader>
                   <TableRow className="border-white/8 hover:bg-transparent">
                     <TableHead className="text-slate-500 font-medium">
-                      Name
+                      <button
+                        onClick={() => handleGearSort("name")}
+                        className="flex items-center hover:text-slate-300 transition-colors"
+                      >
+                        Name
+                        {getSortIcon("name", gearSortField, gearSortDirection)}
+                      </button>
                     </TableHead>
                     <TableHead className="text-slate-500 font-medium">
-                      Brand
+                      <button
+                        onClick={() => handleGearSort("brand")}
+                        className="flex items-center hover:text-slate-300 transition-colors"
+                      >
+                        Brand
+                        {getSortIcon("brand", gearSortField, gearSortDirection)}
+                      </button>
                     </TableHead>
                     <TableHead className="text-slate-500 font-medium">
                       Category
@@ -1067,7 +1163,7 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    gears.map((g) => (
+                    getSortedGears().map((g) => (
                       <TableRow
                         key={g.id}
                         className="border-white/5 hover:bg-white/3"
@@ -1216,7 +1312,26 @@ export default function AdminPage() {
                 <TableHeader>
                   <TableRow className="border-white/8 hover:bg-transparent">
                     <TableHead className="text-slate-500 font-medium">
-                      Title
+                      <button
+                        onClick={() => handleGameSort("title")}
+                        className="flex items-center hover:text-slate-300 transition-colors"
+                      >
+                        Title
+                        {getSortIcon("title", gameSortField, gameSortDirection)}
+                      </button>
+                    </TableHead>
+                    <TableHead className="text-slate-500 font-medium">
+                      <button
+                        onClick={() => handleGameSort("publisher")}
+                        className="flex items-center hover:text-slate-300 transition-colors"
+                      >
+                        Publisher
+                        {getSortIcon(
+                          "publisher",
+                          gameSortField,
+                          gameSortDirection,
+                        )}
+                      </button>
                     </TableHead>
                     <TableHead className="text-slate-500 font-medium">
                       Profile Link
@@ -1233,7 +1348,7 @@ export default function AdminPage() {
                   {gamesLoading ? (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={5}
                         className="text-center text-slate-500 py-10"
                       >
                         Loading...
@@ -1241,7 +1356,7 @@ export default function AdminPage() {
                     </TableRow>
                   ) : games.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-12">
+                      <TableCell colSpan={5} className="py-12">
                         <div className="flex flex-col items-center gap-3 text-slate-600">
                           <Gamepad2 className="w-8 h-8" />
                           <p className="text-sm">
@@ -1251,13 +1366,16 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    games.map((g) => (
+                    getSortedGames().map((g) => (
                       <TableRow
                         key={g.id}
                         className="border-white/5 hover:bg-white/3"
                       >
                         <TableCell className="font-medium text-white">
                           {g.title}
+                        </TableCell>
+                        <TableCell className="text-slate-400">
+                          {g.publisher || "—"}
                         </TableCell>
                         <TableCell className="text-slate-400 max-w-[160px] truncate">
                           {g.profile_url ? (
@@ -1333,9 +1451,19 @@ export default function AdminPage() {
                           hi3: "",
                           zzz: "",
                         };
+
+                        // Auto-set publisher based on platform
+                        let autoPublisher = "";
+                        if (platform === "steam") {
+                          autoPublisher = "Steam";
+                        } else if (platform === "hoyolab") {
+                          autoPublisher = "HoYoverse";
+                        }
+
                         setGameForm((f) => ({
                           ...f,
                           platform,
+                          publisher: autoPublisher || f.publisher,
                           ...(platform === "steam" || platform === "none"
                             ? {
                                 hoyolab_game: "",
@@ -1413,6 +1541,7 @@ export default function AdminPage() {
                                       title: r.name,
                                       steam_appid: String(r.appid),
                                       image_url: `https://cdn.akamai.steamstatic.com/steam/apps/${r.appid}/header.jpg`,
+                                      publisher: "Steam",
                                       steamSearchQuery: "",
                                       steamSearchResults: [],
                                       steamSearchError: null,
@@ -1475,6 +1604,22 @@ export default function AdminPage() {
                           (steamcommunity.com/profiles/...)
                         </p>
                       </Field>
+
+                      <Field label="Publisher">
+                        <SI
+                          placeholder="Nhà phát hành..."
+                          value={gameForm.publisher}
+                          onChange={(e) =>
+                            setGameForm({
+                              ...gameForm,
+                              publisher: e.target.value,
+                            })
+                          }
+                        />
+                        <p className="text-xs text-slate-600 mt-1">
+                          Tự động điền "Steam", có thể chỉnh sửa
+                        </p>
+                      </Field>
                     </div>
                   )}
 
@@ -1495,20 +1640,34 @@ export default function AdminPage() {
                             // Auto-fill title and image from HoYo game
                             const HOYO_INFO: Record<
                               string,
-                              { title: string; image: string }
+                              {
+                                title: string;
+                                image: string;
+                                publisher: string;
+                              }
                             > = {
                               genshin: {
                                 title: "Genshin Impact",
                                 image:
                                   "https://fastcdn.hoyoverse.com/static-resource-v2/2024/04/12/b4b6e8803f1f4b6b8b8b8b8b8b8b8b8b_1234567890.jpg",
+                                publisher: "HoYoverse",
                               },
                               hsr: {
                                 title: "Honkai: Star Rail",
                                 image:
                                   "https://hsr.hoyoverse.com/upload/op/2023/01/20/d7b3d0d3e6b5b8a1c2e4f5a6b7c8d9e0.png",
+                                publisher: "HoYoverse",
                               },
-                              hi3: { title: "Honkai Impact 3rd", image: "" },
-                              zzz: { title: "Zenless Zone Zero", image: "" },
+                              hi3: {
+                                title: "Honkai Impact 3rd",
+                                image: "",
+                                publisher: "HoYoverse",
+                              },
+                              zzz: {
+                                title: "Zenless Zone Zero",
+                                image: "",
+                                publisher: "HoYoverse",
+                              },
                             };
                             const info = game ? HOYO_INFO[game] : null;
                             setGameForm((f) => ({
@@ -1519,6 +1678,8 @@ export default function AdminPage() {
                                 : "",
                               // Auto-fill title if empty
                               title: f.title || (info?.title ?? ""),
+                              // Auto-fill publisher
+                              publisher: info?.publisher ?? "HoYoverse",
                             }));
                           }}
                         >
@@ -1606,6 +1767,22 @@ export default function AdminPage() {
                           </p>
                         </>
                       )}
+
+                      <Field label="Publisher">
+                        <SI
+                          placeholder="Nhà phát hành..."
+                          value={gameForm.publisher}
+                          onChange={(e) =>
+                            setGameForm({
+                              ...gameForm,
+                              publisher: e.target.value,
+                            })
+                          }
+                        />
+                        <p className="text-xs text-slate-600 mt-1">
+                          Tự động điền "HoYoverse", có thể chỉnh sửa
+                        </p>
+                      </Field>
                     </div>
                   )}
 
@@ -1619,6 +1796,18 @@ export default function AdminPage() {
                             setGameForm({ ...gameForm, title: e.target.value })
                           }
                           required
+                        />
+                      </Field>
+                      <Field label="Publisher (tùy chọn)">
+                        <SI
+                          placeholder="Tên nhà phát hành..."
+                          value={gameForm.publisher}
+                          onChange={(e) =>
+                            setGameForm({
+                              ...gameForm,
+                              publisher: e.target.value,
+                            })
+                          }
                         />
                       </Field>
                       <Field label="Profile Link (tùy chọn)">
@@ -1643,6 +1832,22 @@ export default function AdminPage() {
                         />
                       </Field>
                     </>
+                  )}
+
+                  {/* ── RAWG IMAGE PICKER (hiển thị cho tất cả platforms) ── */}
+                  {gameForm.title && (
+                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                      <p className="text-sm font-semibold text-white mb-3">
+                        🎮 Chọn ảnh từ RAWG Database:
+                      </p>
+                      <RAWGImagePicker
+                        gameName={gameForm.title}
+                        currentImage={gameForm.image_url}
+                        onSelectImage={(url) =>
+                          setGameForm({ ...gameForm, image_url: url })
+                        }
+                      />
+                    </div>
                   )}
 
                   <Field label="Status">

@@ -66,20 +66,17 @@ export default function SteamStats({ appid, steamid }: Props) {
   if (!data) return null;
 
   const stats = [
-    { label: "Total", value: `${data.hours_total} giờ` },
-    ...(data.hours_2weeks > 0
-      ? [{ label: "2 tuần", value: `${data.hours_2weeks} giờ` }]
-      : []),
+    { label: "Tổng giờ chơi", value: `${data.hours_total}h` },
     ...(data.achievements_total > 0
       ? [
           {
-            label: "Achievements",
+            label: "Thành tựu",
             value: `${data.achievements_unlocked}/${data.achievements_total}`,
           },
         ]
       : []),
     ...(data.last_played
-      ? [{ label: "Lần cuối", value: relativeTime(data.last_played) }]
+      ? [{ label: "Lần cuối chơi", value: relativeTime(data.last_played) }]
       : []),
   ];
 

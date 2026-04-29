@@ -12,7 +12,8 @@ const ENDPOINTS: Record<string, string> = {
   genshin: "https://bbs-api-os.hoyolab.com/game_record/genshin/api/index",
   hsr: "https://bbs-api-os.hoyolab.com/game_record/hkrpg/api/index",
   hi3: "https://bbs-api-os.hoyolab.com/game_record/honkai3rd/api/index",
-  zzz: "https://bbs-api-os.hoyolab.com/game_record/nap/api/index",
+  // ZZZ endpoint - alternative
+  zzz: "https://bbs-api-os.hoyolab.com/game_record/zzz/api/index",
 };
 
 const DS_SALT = "6s25p5ox5y14umn1p61aqyyvbvvl3lrt";
@@ -48,6 +49,8 @@ async function fetchHoYoStats(game: string, uid: string, server: string) {
   const url = `${endpoint}?server=${server}&role_id=${uid}`;
 
   try {
+    console.log(`Fetching HoYoLAB ${game} data from:`, url);
+
     const res = await fetch(url, {
       headers: {
         Cookie: `ltoken_v2=${ltoken}; ltuid_v2=${ltuid}`,
@@ -62,13 +65,30 @@ async function fetchHoYoStats(game: string, uid: string, server: string) {
       },
     });
 
+    console.log(`HoYoLAB ${game} fetch status:`, res.status, res.statusText);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`HoYoLAB ${game} HTTP error:`, res.status, errorText);
+      return {
+        error: `HTTP ${res.status}: ${res.statusText}`,
+        retcode: res.status,
+      };
+    }
+
     const json = await res.json();
     console.log(
-      "HoYoLAB response:",
-      JSON.stringify({ retcode: json.retcode, message: json.message }),
+      `HoYoLAB ${game.toUpperCase()} response:`,
+      JSON.stringify({
+        retcode: json.retcode,
+        message: json.message,
+        hasData: !!json.data,
+        dataKeys: json.data ? Object.keys(json.data) : [],
+      }),
     );
 
     if (json.retcode !== 0) {
+      console.error(`HoYoLAB ${game} error details:`, json);
       return {
         error: json.message || "HoYoLAB API error",
         retcode: json.retcode,
@@ -78,8 +98,13 @@ async function fetchHoYoStats(game: string, uid: string, server: string) {
     cache[cacheKey] = { data: json.data, ts: now };
     return { data: json.data, cached: false };
   } catch (err) {
-    console.error("HoYoLAB fetch error:", err);
-    return { error: "Failed to fetch HoYoLAB data" };
+    console.error(`HoYoLAB ${game} fetch error:`, err);
+    console.error(`Error details:`, {
+      name: (err as Error).name,
+      message: (err as Error).message,
+      cause: (err as any).cause,
+    });
+    return { error: `Failed to fetch HoYoLAB data: ${(err as Error).message}` };
   }
 }
 
@@ -156,10 +181,27 @@ function formatStats(game: string, raw: any) {
   }
 
   if (game === "zzz") {
+    // ZZZ (Zenless Zone Zero) stats
+    // Note: ZZZ API endpoint may not be available yet or requires different authentication
+    // Log raw data to debug
+    console.log("ZZZ raw data:", JSON.stringify(raw));
+    console.log("ZZZ stats:", JSON.stringify(raw.stats));
+
+    // Return empty if no stats available
+    if (!raw.stats) {
+      console.warn("ZZZ stats not available - API may not be ready");
+      return {};
+    }
+
     return {
+      level: raw.stats?.level,
       characters: raw.stats?.avatar_num,
-      achievements: raw.stats?.achievement_num,
+      achievements: raw.stats?.achievement_count || raw.stats?.achievement_num,
       days_active: raw.stats?.active_days,
+      // Additional ZZZ-specific stats
+      world_level: raw.stats?.world_level_name,
+      shiyu_defense: raw.stats?.cur_period_zone_layer_count,
+      bangboo: raw.stats?.bangboo_num,
     };
   }
 

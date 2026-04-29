@@ -18,9 +18,10 @@ import LoadingScreen from "@/components/LoadingScreen";
 import DiscordStatus from "@/components/DiscordStatus";
 import HoYoStats from "@/components/HoYoStats";
 import SteamStats from "@/components/SteamStats";
+import GameCover from "@/components/GameCover";
 
-// 👇 Thay bằng Discord ID của bạn (bật Developer Mode → chuột phải tên → Copy ID)
-const DISCORD_ID = "738686448148021250";
+// Discord ID from environment variable
+const DISCORD_ID = process.env.NEXT_PUBLIC_DISCORD_ID || "";
 
 type Profile = {
   username: string | null;
@@ -56,6 +57,7 @@ type Game = {
   hoyolab_server?: string | null;
   steam_appid?: string | null;
   steam_id?: string | null;
+  publisher?: string | null;
 };
 
 type Project = {
@@ -443,63 +445,59 @@ export default function HomePage() {
                             </span>
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {onlineGames.map((game) => (
-                              <div
-                                key={game.id}
-                                className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all"
-                              >
-                                <div className="h-28 bg-gradient-to-br from-blue-900/30 to-cyan-900/20 flex items-center justify-center overflow-hidden">
-                                  {game.image_url ? (
-                                    <img
-                                      src={game.image_url}
-                                      alt={game.title}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <Gamepad2 className="w-10 h-10 text-blue-500/20" />
-                                  )}
-                                </div>
-                                <div className="p-4">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h3 className="font-semibold text-white leading-tight">
-                                      {game.title}
-                                    </h3>
-                                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border shrink-0 bg-emerald-500/15 text-emerald-400 border-emerald-500/25">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                      Online
-                                    </span>
-                                  </div>
-                                  {game.profile_url && (
-                                    <a
-                                      href={game.profile_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="mt-2 flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                    >
-                                      <ExternalLink className="w-3 h-3" /> View
-                                      Profile
-                                    </a>
-                                  )}
-                                  {/* HoYoLAB Stats */}
-                                  {game.hoyolab_game &&
-                                    game.hoyolab_uid &&
-                                    game.hoyolab_server && (
-                                      <HoYoStats
-                                        game={game.hoyolab_game}
-                                        uid={game.hoyolab_uid}
-                                        server={game.hoyolab_server}
+                            {onlineGames.map((game) => {
+                              return (
+                                <div
+                                  key={game.id}
+                                  className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all"
+                                >
+                                  <GameCover
+                                    title={game.title}
+                                    imageUrl={game.image_url}
+                                    className="w-full h-28"
+                                  />
+                                  <div className="p-4">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <h3 className="font-semibold text-white leading-tight">
+                                        {game.title}
+                                      </h3>
+                                      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border shrink-0 bg-emerald-500/15 text-emerald-400 border-emerald-500/25">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                        Online
+                                      </span>
+                                    </div>
+                                    {game.profile_url && (
+                                      <a
+                                        href={game.profile_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-2 flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />{" "}
+                                        View Profile
+                                      </a>
+                                    )}
+                                    {/* HoYoLAB Stats */}
+                                    {game.hoyolab_game &&
+                                      game.hoyolab_uid &&
+                                      game.hoyolab_server && (
+                                        <HoYoStats
+                                          game={game.hoyolab_game}
+                                          uid={game.hoyolab_uid}
+                                          server={game.hoyolab_server}
+                                        />
+                                      )}
+                                    {/* Steam Stats */}
+                                    {game.steam_appid && game.steam_id && (
+                                      <SteamStats
+                                        appid={game.steam_appid}
+                                        steamid={game.steam_id}
                                       />
                                     )}
-                                  {/* Steam Stats */}
-                                  {game.steam_appid && game.steam_id && (
-                                    <SteamStats
-                                      appid={game.steam_appid}
-                                      steamid={game.steam_id}
-                                    />
-                                  )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -515,63 +513,59 @@ export default function HomePage() {
                             </span>
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {offlineGames.map((game) => (
-                              <div
-                                key={game.id}
-                                className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all"
-                              >
-                                <div className="h-28 bg-gradient-to-br from-blue-900/30 to-cyan-900/20 flex items-center justify-center overflow-hidden">
-                                  {game.image_url ? (
-                                    <img
-                                      src={game.image_url}
-                                      alt={game.title}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <Gamepad2 className="w-10 h-10 text-blue-500/20" />
-                                  )}
-                                </div>
-                                <div className="p-4">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h3 className="font-semibold text-white leading-tight">
-                                      {game.title}
-                                    </h3>
-                                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border shrink-0 bg-slate-700/50 text-slate-400 border-white/10">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                                      Offline
-                                    </span>
-                                  </div>
-                                  {game.profile_url && (
-                                    <a
-                                      href={game.profile_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="mt-2 flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                    >
-                                      <ExternalLink className="w-3 h-3" /> View
-                                      Profile
-                                    </a>
-                                  )}
-                                  {/* HoYoLAB Stats */}
-                                  {game.hoyolab_game &&
-                                    game.hoyolab_uid &&
-                                    game.hoyolab_server && (
-                                      <HoYoStats
-                                        game={game.hoyolab_game}
-                                        uid={game.hoyolab_uid}
-                                        server={game.hoyolab_server}
+                            {offlineGames.map((game) => {
+                              return (
+                                <div
+                                  key={game.id}
+                                  className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all"
+                                >
+                                  <GameCover
+                                    title={game.title}
+                                    imageUrl={game.image_url}
+                                    className="w-full h-28"
+                                  />
+                                  <div className="p-4">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <h3 className="font-semibold text-white leading-tight">
+                                        {game.title}
+                                      </h3>
+                                      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border shrink-0 bg-slate-700/50 text-slate-400 border-white/10">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                                        Offline
+                                      </span>
+                                    </div>
+                                    {game.profile_url && (
+                                      <a
+                                        href={game.profile_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-2 flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />{" "}
+                                        View Profile
+                                      </a>
+                                    )}
+                                    {/* HoYoLAB Stats */}
+                                    {game.hoyolab_game &&
+                                      game.hoyolab_uid &&
+                                      game.hoyolab_server && (
+                                        <HoYoStats
+                                          game={game.hoyolab_game}
+                                          uid={game.hoyolab_uid}
+                                          server={game.hoyolab_server}
+                                        />
+                                      )}
+                                    {/* Steam Stats */}
+                                    {game.steam_appid && game.steam_id && (
+                                      <SteamStats
+                                        appid={game.steam_appid}
+                                        steamid={game.steam_id}
                                       />
                                     )}
-                                  {/* Steam Stats */}
-                                  {game.steam_appid && game.steam_id && (
-                                    <SteamStats
-                                      appid={game.steam_appid}
-                                      steamid={game.steam_id}
-                                    />
-                                  )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
