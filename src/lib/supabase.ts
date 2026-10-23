@@ -1,13 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
+import "server-only";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "";
 
-// Browser/client-side client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (supabaseAnonKey.startsWith("sb_secret_")) {
+  throw new Error("Use SUPABASE_SECRET_KEY for secret keys, never NEXT_PUBLIC_ variables.");
+}
 
 // Server client for Server Components and Server Actions
 import { createServerClient } from "@supabase/ssr";

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { createAdminToken, verifyAdminToken } from '@/lib/admin-auth'
 
 // Server-side password check
 export async function POST(request: Request) {
@@ -7,11 +8,11 @@ export async function POST(request: Request) {
     const { password } = await request.json()
     
     // Get password from server-side env (not NEXT_PUBLIC_)
-    const correctPassword = process.env.ADMIN_PASSWORD || 'admin123'
+    const correctPassword = process.env.ADMIN_PASSWORD
+    if (!correctPassword) return NextResponse.json({ error: 'Admin password is not configured' }, { status: 503 })
     
     if (password === correctPassword) {
-      // Create a simple auth token (in production, use JWT)
-      const token = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64')
+      const token = await createAdminToken(correctPassword)
       
       // Set HTTP-only cookie (more secure than sessionStorage)
       const cookieStore = await cookies()
@@ -44,7 +45,7 @@ export async function GET() {
   const cookieStore = await cookies()
   const token = cookieStore.get('admin_token')
   
-  if (token) {
+  if (await verifyAdminToken(token?.value, process.env.ADMIN_PASSWORD || '')) {
     return NextResponse.json({ authenticated: true })
   }
   

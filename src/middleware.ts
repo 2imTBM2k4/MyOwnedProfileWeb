@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyAdminToken } from "@/lib/admin-auth";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Protect API routes (except auth and public reads)
   if (request.nextUrl.pathname.startsWith("/api/")) {
     // Allow auth endpoint
@@ -15,14 +16,14 @@ export function middleware(request: NextRequest) {
     }
 
     // Allow GET requests (public read)
-    if (request.method === "GET") {
+    if (request.method === "GET" || request.method === "HEAD") {
       return NextResponse.next();
     }
 
     // For POST, PATCH, DELETE - check authentication
     const token = request.cookies.get("admin_token");
 
-    if (!token) {
+    if (!await verifyAdminToken(token?.value, process.env.ADMIN_PASSWORD || "")) {
       return NextResponse.json(
         { error: "Unauthorized - Admin login required" },
         { status: 401 },

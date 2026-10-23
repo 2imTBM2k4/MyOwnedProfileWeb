@@ -68,6 +68,25 @@
 .loading { display: grid; place-items: center; min-height: 100svh; color: var(--secondary); }
 .profileForm { max-width: 760px; }
 .profileForm > :last-child { margin-top: 28px; }
+.sortButton { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: inherit; }
+.sortButton:hover { color: var(--ink); }
+.tableImage { width: 56px; height: 44px; border-radius: 5px; background: var(--panel); color: var(--secondary); display: grid; place-items: center; overflow: hidden; }
+.tableImage img { width: 100%; height: 100%; object-fit: contain; }
+.status { display: inline-flex; align-items: center; border: 1px solid currentColor; border-radius: 20px; padding: 3px 9px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--secondary); background: var(--panel); }
+.status[data-status="active"], .status[data-status="online"] { color: #205c3a; background: #e0f0e4; }
+.status[data-status="completed"] { color: #1e4c8a; background: #e4ecfb; }
+.status[data-status="retired"] { color: #714600; background: #fff0cf; }
+:global(.dark) .status[data-status="active"], :global(.dark) .status[data-status="online"] { color: #a2e6b6; background: #213c2b; }
+:global(.dark) .status[data-status="completed"] { color: #b8d2ff; background: #24324b; }
+:global(.dark) .status[data-status="retired"] { color: #f4d08d; background: #42351e; }
+.errorNotice { color: var(--danger); padding-block: 12px; overflow-wrap: anywhere; }
+.errorNotice button, .cvSection button { text-decoration: underline; min-height: 44px; }
+.cvSection { border-top: 1px solid var(--line); padding-top: 24px; display: grid; gap: 12px; }
+.cvSection h2 { font-size: 22px; }
+.cvSection p { color: var(--secondary); }
+.cvSection p.errorNotice { color: var(--danger); }
+.cvSection .input { height: auto; min-height: 44px; }
+.cvLink { color: var(--highlight); text-decoration: underline; min-height: 44px; display: flex; align-items: center; width: fit-content; }
 @media (max-width: 900px) {
   .frame { padding-inline: 32px; }
   .topActions { gap: 12px; }

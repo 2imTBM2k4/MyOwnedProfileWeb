@@ -112,7 +112,7 @@ export const CHAT_TOPICS: ChatTopic[] = [
       "hợp tác",
     ],
     response:
-      "Bạn có thể kết nối trực tiếp với mình qua:\n• Email: binhminh.tran.dev@gmail.com\n• GitHub: github.com/2imTBM2k4\nMình luôn sẵn sàng lắng nghe các cơ hội thực tập hoặc vị trí Backend Developer tiềm năng!",
+      "Bạn có thể kết nối trực tiếp với mình qua:\n• Email: 2004.tranbinhminh@gmail.com\n• GitHub: github.com/2imTBM2k4\nMình luôn sẵn sàng lắng nghe các cơ hội thực tập hoặc vị trí Backend Developer tiềm năng!",
   },
 ];
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUpRight, Check, Copy } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Check, Copy, Download } from "lucide-react";
 import FloatingNavbar from "@/components/FloatingNavbar";
 import SmoothScroll from "@/components/SmoothScroll";
 import ProjectPreview from "@/components/ProjectPreview";
@@ -18,7 +18,7 @@ type SiteData = { profile: Profile | null; projects: Project[]; gears: Gear[]; s
 const EMPTY_DATA: SiteData = { profile: null, projects: [], gears: [], socialLinks: [] };
 const CACHE_KEY = "site_data_cache";
 const CACHE_TTL = 5 * 60 * 1000;
-const EMAIL = "binhminh.tran.dev@gmail.com";
+const EMAIL = "2004.tranbinhminh@gmail.com";
 const SOURCES = [
   ["profile", "/api/profile"], ["projects", "/api/projects"],
   ["gears", "/api/gears"], ["socialLinks", "/api/social-links"],
@@ -29,8 +29,18 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [failures, setFailures] = useState<string[]>([]);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [cvState, setCvState] = useState<"loading" | "ready" | "missing" | "error">("loading");
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
   const content = useRef<HTMLDivElement>(null);
+
+  const refreshCv = useCallback(async () => {
+    try {
+      const response = await fetch("/api/cv", { method: "HEAD", cache: "no-store", signal: AbortSignal.timeout(12000) });
+      setCvState(response.ok ? "ready" : response.status === 404 ? "missing" : "error");
+    } catch { setCvState("error"); }
+  }, []);
+
+  useEffect(() => { void refreshCv(); }, [refreshCv]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -110,8 +120,10 @@ export default function HomePage() {
                 <p>Mình là Minh, sinh viên năm cuối CNTT. Mình thích tìm hiểu cách một ứng dụng vận hành, rồi tự tay xây dựng nó.</p>
                 <div className={styles.actions}>
                   <a className={styles.primary} href="#projects">Xem dự án <ArrowDown size={17} /></a>
+                  {cvState === "ready" && <a className={styles.textLink} href="/api/cv" download>Tải CV <Download size={17} /></a>}
                   <a className={styles.textLink} href={`mailto:${EMAIL}`}>Trò chuyện với mình <ArrowUpRight size={17} /></a>
                 </div>
+                {cvState === "error" && <p className={styles.cvNotice} role="status">Chưa thể tải CV. <button type="button" onClick={() => void refreshCv()}>Thử lại</button></p>}
               </div>
               <div className={styles.personalNote}>
                 {avatar && <img src={avatar} alt="Ảnh đại diện của Minh" width="60" height="60" className={styles.avatar} />}
@@ -200,6 +212,7 @@ export default function HomePage() {
             <div className={styles.contactBody}>
               <p data-reveal>Về một cơ hội làm việc, một dự án,<br />hay đơn giản là một chiếc bàn phím hay.</p>
               <div className={styles.emailGroup} data-reveal>
+                <p className={styles.location}>Ho Chi Minh City, Vietnam</p>
                 <a className={styles.email} href={`mailto:${EMAIL}`}>{EMAIL} <ArrowUpRight size={22} /></a>
                 <button className={styles.copyButton} onClick={() => void copyEmail()} aria-label="Sao chép địa chỉ email">{copyState === "copied" ? <Check size={16} /> : <Copy size={16} />}<span>{copyState === "copied" ? "Đã sao chép" : "Sao chép"}</span></button>
                 <span className={styles.copyStatus} role="status">{copyState === "failed" ? "Chưa sao chép được. Bạn có thể chọn địa chỉ email hoặc nhấn để gửi thư." : copyState === "copied" ? "Đã sao chép địa chỉ email." : ""}</span>

@@ -49,7 +49,7 @@ export default function LiquidHeroCard() {
   };
 
   const copyContact = () => {
-    navigator.clipboard.writeText("binhminh.tran.dev@gmail.com");
+    navigator.clipboard.writeText("2004.tranbinhminh@gmail.com");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

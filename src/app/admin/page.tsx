@@ -41,6 +41,8 @@ import ImageCropper from "@/components/ImageCropper";
 import RAWGImagePicker from "@/components/RAWGImagePicker";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "./admin.module.css";
+import { sortRows } from "@/lib/admin-sort";
+import { validateCv } from "@/lib/cv";
 
 type Profile = {
   username: string;
@@ -89,14 +91,13 @@ type Project = {
 };
 type Tab = "profile" | "gears" | "games" | "social" | "projects";
 
-const GAME_STATUS_LABELS: Record<string, string> = {
-  online: "Online",
-  offline: "Offline",
-  playing: "Online",
-  completed: "Offline",
-  plan_to_play: "Offline",
-  dropped: "Offline",
-};
+function TableImage({ src, name }: { src: string | null; name: string }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  return <div className={styles.tableImage}>{src && !failed
+    ? <img src={src} alt={name} loading="lazy" onError={() => setFailed(true)} />
+    : <ImageIcon aria-label="Chưa có ảnh" size={20} />}</div>;
+}
 
 function Field({
   label,
@@ -383,13 +384,6 @@ export default function AdminPage() {
     status: "active" as "active" | "retired",
     image_url: "",
   });
-  const [gearSortField, setGearSortField] = useState<"name" | "brand" | null>(
-    null,
-  );
-  const [gearSortDirection, setGearSortDirection] = useState<"asc" | "desc">(
-    "asc",
-  );
-
   const [games, setGames] = useState<Game[]>([]);
   const [gamesLoading, setGamesLoading] = useState(true);
   const [gameOpen, setGameOpen] = useState(false);
@@ -411,13 +405,6 @@ export default function AdminPage() {
     steamSearchLoading: false,
     steamSearchError: null as string | null,
   });
-  const [gameSortField, setGameSortField] = useState<
-    "title" | "publisher" | null
-  >(null);
-  const [gameSortDirection, setGameSortDirection] = useState<"asc" | "desc">(
-    "asc",
-  );
-
   const steamDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const searchSteam = useCallback((term: string) => {
@@ -469,6 +456,17 @@ export default function AdminPage() {
     display_order: "",
   });
 
+  const [sorts, setSorts] = useState<Record<string, { field: string | null; direction: "asc" | "desc" }>>({
+    gears: { field: null, direction: "asc" }, games: { field: null, direction: "asc" },
+    projects: { field: null, direction: "asc" }, social: { field: null, direction: "asc" },
+  });
+  const [projectError, setProjectError] = useState("");
+  const [projectSaving, setProjectSaving] = useState(false);
+  const [cvState, setCvState] = useState<"loading" | "ready" | "missing" | "error">("loading");
+  const [cvUploading, setCvUploading] = useState(false);
+  const [cvMessage, setCvMessage] = useState("");
+  const [cvError, setCvError] = useState("");
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectOpen, setProjectOpen] = useState(false);
@@ -512,10 +510,13 @@ export default function AdminPage() {
   const fetchProjects = async () => {
     setProjectsLoading(true);
     try {
-      const d = await fetch("/api/projects").then((r) => r.json());
-      setProjects(Array.isArray(d) ? d : []);
-    } catch {
-      setProjects([]);
+      setProjectError("");
+      const response = await fetch("/api/projects", { cache: "no-store" });
+      const d = await response.json();
+      if (!response.ok || !Array.isArray(d)) throw new Error(d.error || "Không thể tải danh sách dự án.");
+      setProjects(d);
+    } catch (error) {
+      setProjectError(error instanceof Error ? error.message : "Không thể tải danh sách dự án.");
     } finally {
       setProjectsLoading(false);
     }
@@ -528,6 +529,34 @@ export default function AdminPage() {
     fetchSocials();
     fetchProjects();
   }, []);
+
+  const fetchCv = async () => {
+    try {
+      const response = await fetch("/api/cv", { method: "HEAD", cache: "no-store" });
+      setCvState(response.ok ? "ready" : response.status === 404 ? "missing" : "error");
+    } catch { setCvState("error"); }
+  };
+
+  useEffect(() => { if (authenticated) void fetchCv(); }, [authenticated]);
+
+  const uploadCv = async (file: File) => {
+    setCvUploading(true);
+    setCvError("");
+    setCvMessage("");
+    try {
+      const validation = await validateCv(file);
+      if (validation) throw new Error(validation);
+      const form = new FormData();
+      form.append("file", file);
+      const response = await fetch("/api/cv", { method: "POST", body: form });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Chưa thể tải CV lên.");
+      setCvState("ready");
+      setCvMessage("Đã cập nhật CV. Khách có thể tải xuống từ đầu trang.");
+    } catch (error) {
+      setCvError(error instanceof Error ? error.message : "Chưa thể tải CV lên.");
+    } finally { setCvUploading(false); }
+  };
 
   const saveProfile = async () => {
     setProfileSaving(true);
@@ -690,66 +719,16 @@ export default function AdminPage() {
     fetchGames();
   };
 
-  // Sorting functions
-  const handleGearSort = (field: "name" | "brand") => {
-    if (gearSortField === field) {
-      // Toggle direction
-      setGearSortDirection(gearSortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setGearSortField(field);
-      setGearSortDirection("asc");
-    }
-  };
-
-  const handleGameSort = (field: "title" | "publisher") => {
-    if (gameSortField === field) {
-      // Toggle direction
-      setGameSortDirection(gameSortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setGameSortField(field);
-      setGameSortDirection("asc");
-    }
-  };
-
-  const getSortedGears = () => {
-    if (!gearSortField) return gears;
-    return [...gears].sort((a, b) => {
-      const aVal = (a[gearSortField] || "").toLowerCase();
-      const bVal = (b[gearSortField] || "").toLowerCase();
-      if (gearSortDirection === "asc") {
-        return aVal.localeCompare(bVal);
-      } else {
-        return bVal.localeCompare(aVal);
-      }
-    });
-  };
-
-  const getSortedGames = () => {
-    if (!gameSortField) return games;
-    return [...games].sort((a, b) => {
-      const aVal = (a[gameSortField] || "").toLowerCase();
-      const bVal = (b[gameSortField] || "").toLowerCase();
-      if (gameSortDirection === "asc") {
-        return aVal.localeCompare(bVal);
-      } else {
-        return bVal.localeCompare(aVal);
-      }
-    });
-  };
-
-  const getSortIcon = (
-    field: string,
-    currentField: string | null,
-    direction: "asc" | "desc",
-  ) => {
-    if (field !== currentField) {
-      return <ArrowUpDown className="w-3.5 h-3.5 ml-1 opacity-40" />;
-    }
-    return direction === "asc" ? (
-      <ArrowUp className="w-3.5 h-3.5 ml-1" />
-    ) : (
-      <ArrowDown className="w-3.5 h-3.5 ml-1" />
-    );
+  const sortHeading = (table: string, field: string, label: string) => {
+    const sort = sorts[table];
+    const active = sort.field === field;
+    return <TableHead aria-sort={active ? sort.direction === "asc" ? "ascending" : "descending" : "none"}>
+      <button type="button" className={styles.sortButton} onClick={() => setSorts(previous => ({
+        ...previous, [table]: { field, direction: active && sort.direction === "asc" ? "desc" : "asc" },
+      }))}>
+        {label}{!active ? <ArrowUpDown aria-hidden="true" size={14} /> : sort.direction === "asc" ? <ArrowUp aria-hidden="true" size={14} /> : <ArrowDown aria-hidden="true" size={14} />}
+      </button>
+    </TableHead>;
   };
 
   const handleSocialSubmit = async (e: React.FormEvent) => {
@@ -826,33 +805,44 @@ export default function AdminPage() {
       tags: tagList,
     });
 
-    if (projectEditId) {
-      await fetch(`/api/projects/${projectEditId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
-    } else {
-      await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
-    }
+    setProjectSaving(true);
+    setProjectError("");
+    try {
+      let response: Response;
+      if (projectEditId) {
+        response = await fetch(`/api/projects/${projectEditId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+      } else {
+        response = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+      }
 
-    setProjectOpen(false);
-    setProjectEditId(null);
-    setProjectForm({
-      title: "",
-      description: "",
-      github_url: "",
-      demo_url: "",
-      image_url: "",
-      status: "active",
-      tags: "",
-      isFeatured: false,
-    });
-    fetchProjects();
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || "Không thể lưu dự án.");
+      }
+      setProjectOpen(false);
+      setProjectEditId(null);
+      setProjectForm({
+        title: "",
+        description: "",
+        github_url: "",
+        demo_url: "",
+        image_url: "",
+        status: "active",
+        tags: "",
+        isFeatured: false,
+      });
+      await fetchProjects();
+    } catch (error) {
+      setProjectError(error instanceof Error ? error.message : "Không thể lưu dự án.");
+    } finally { setProjectSaving(false); }
   };
 
   const openAddProject = () => {
@@ -898,18 +888,24 @@ export default function AdminPage() {
     } else {
       nextTags = [...tagArr, "featured"];
     }
-    await fetch(`/api/projects/${p.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tags: nextTags }),
-    });
-    fetchProjects();
+    try {
+      const response = await fetch(`/api/projects/${p.id}`  , {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tags: nextTags }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error || "Không thể cập nhật dự án.");
+      await fetchProjects();
+    } catch (error) { setProjectError(error instanceof Error ? error.message : "Không thể cập nhật dự án."); }
   };
 
   const deleteProject = async (id: string) => {
     if (!confirm("Bạn có chắc muốn xóa dự án này?")) return;
-    await fetch(`/api/projects/${id}`, { method: "DELETE" });
-    fetchProjects();
+    try {
+      const response = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error((await response.json()).error || "Không thể xóa dự án.");
+      await fetchProjects();
+    } catch (error) { setProjectError(error instanceof Error ? error.message : "Không thể xóa dự án."); }
   };
 
   const navTabs = [
@@ -1098,6 +1094,10 @@ export default function AdminPage() {
           ))}
         </nav>
 
+        {projectError && !projectOpen && <div className={styles.errorNotice} role="alert">
+          {projectError} <button type="button" onClick={() => void fetchProjects()}>Tải lại dự án</button>
+        </div>}
+
         {/* ── PROFILE ── */}
         {tab === "profile" && (
           <div className={`${styles.profileForm} space-y-6`}>
@@ -1232,6 +1232,23 @@ export default function AdminPage() {
               />
             </Field>
 
+            <section className={styles.cvSection} aria-labelledby="cv-heading">
+              <h2 id="cv-heading">CV cá nhân</h2>
+              <p>Chọn tệp PDF, tối đa 4 MB. Tệp mới sẽ thay thế CV hiện tại khi tải lên thành công.</p>
+              {cvState === "loading" && <p role="status">Đang kiểm tra CV…</p>}
+              {cvState === "missing" && <p>Chưa có CV. Tải lên để hiện nút tải xuống ở đầu trang.</p>}
+              {cvState === "error" && <p role="alert">Chưa thể kiểm tra CV. <button type="button" onClick={() => void fetchCv()}>Thử lại</button></p>}
+              {cvState === "ready" && <a className={styles.cvLink} href="/api/cv" download>Tải CV hiện tại</a>}
+              <label className={styles.label} htmlFor="cv-upload">{cvUploading ? "Đang tải CV lên…" : "Tải lên hoặc thay CV"}</label>
+              <input id="cv-upload" type="file" accept=".pdf,application/pdf" disabled={cvUploading || cvState === "loading"} className={styles.input} onChange={event => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void uploadCv(file);
+              }} />
+              {cvError && <p className={styles.errorNotice} role="alert">{cvError}</p>}
+              <p role="status">{cvMessage}</p>
+            </section>
+
             <Button
               onClick={saveProfile}
               disabled={profileSaving}
@@ -1272,18 +1289,10 @@ export default function AdminPage() {
                     <TableHead className="text-[var(--secondary)] font-medium w-16">
                       Ảnh
                     </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Tên dự án & Mô tả
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Công nghệ (Tags)
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Trạng thái
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium text-center">
-                      Nổi bật ⭐
-                    </TableHead>
+                    {sortHeading("projects", "title", "Tên dự án & Mô tả")}
+                    {sortHeading("projects", "tags", "Công nghệ (Tags)")}
+                    {sortHeading("projects", "status", "Trạng thái")}
+                    {sortHeading("projects", "featured", "Nổi bật ⭐")}
                     <TableHead className="text-[var(--secondary)] font-medium text-right">
                       Thao tác
                     </TableHead>
@@ -1305,13 +1314,13 @@ export default function AdminPage() {
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <FileCode className="w-8 h-8" />
                           <p className="text-sm">
-                            Chưa có dự án nào. Nhấn "Thêm Dự án" để tạo mới.
+                            {projectError ? "Chưa thể tải danh sách dự án. Thử tải lại ở trên." : 'Chưa có dự án nào. Nhấn "Thêm Dự án" để tạo mới.'}
                           </p>
                         </div>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    projects.map((p) => {
+                    sortRows(projects.map(p => ({ ...p, featured: p.tags?.includes("featured") ?? false })), sorts.projects.field as keyof Project | "featured" | null, sorts.projects.direction).map((p) => {
                       const tagsList = Array.isArray(p.tags) ? p.tags : [];
                       const isFeatured = tagsList.includes("featured");
                       const displayTags = tagsList.filter(
@@ -1324,17 +1333,7 @@ export default function AdminPage() {
                           className="border-[var(--line)] hover:bg-[var(--panel)]"
                         >
                           <TableCell>
-                            <div className="w-12 h-10 rounded bg-[var(--panel)] overflow-hidden flex items-center justify-center">
-                              {p.image_url ? (
-                                <img
-                                  src={p.image_url}
-                                  alt={p.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <FileCode className="w-5 h-5 text-[var(--secondary)]" />
-                              )}
-                            </div>
+                            <TableImage src={p.image_url} name={p.title} />
                           </TableCell>
                           <TableCell className="max-w-xs">
                             <p className="font-semibold text-[var(--ink)] text-sm">
@@ -1382,23 +1381,8 @@ export default function AdminPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-                                p.status === "completed"
-                                  ? "bg-[var(--panel)] text-[var(--highlight)]"
-                                  : "bg-[var(--panel)] text-[var(--highlight)]"
-                              }`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  p.status === "completed"
-                                    ? "bg-[var(--highlight)]"
-                                    : "bg-[var(--highlight)]"
-                                }`}
-                              />
-                              {p.status === "completed"
-                                ? "Hoàn thành"
-                                : "Đang phát triển"}
+                            <span className={styles.status} data-status={p.status || "unknown"}>
+                              {p.status === "completed" ? "Hoàn thành" : p.status === "active" ? "Đang phát triển" : "Chưa cập nhật"}
                             </span>
                           </TableCell>
                           <TableCell className="text-center">
@@ -1566,6 +1550,7 @@ export default function AdminPage() {
                       }
                     />
                   </Field>
+                  {projectError && <p className={styles.errorNotice} role="alert">{projectError}</p>}
                   <DialogFooter>
                     <Button
                       type="button"
@@ -1576,10 +1561,10 @@ export default function AdminPage() {
                       Hủy
                     </Button>
                     <Button
-                      type="submit"
+                      type="submit" disabled={projectSaving}
                       className={styles.primary}
                     >
-                      {projectEditId ? "Cập nhật" : "Tạo dự án"}
+                      {projectSaving ? "Đang lưu…" : projectEditId ? "Cập nhật" : "Tạo dự án"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -1610,30 +1595,11 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-[var(--line)] hover:bg-transparent">
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      <button
-                        onClick={() => handleGearSort("name")}
-                        className="flex items-center hover:text-[var(--ink)] transition-colors"
-                      >
-                        Tên
-                        {getSortIcon("name", gearSortField, gearSortDirection)}
-                      </button>
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      <button
-                        onClick={() => handleGearSort("brand")}
-                        className="flex items-center hover:text-[var(--ink)] transition-colors"
-                      >
-                        Thương hiệu
-                        {getSortIcon("brand", gearSortField, gearSortDirection)}
-                      </button>
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Loại
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Trạng thái
-                    </TableHead>
+                    <TableHead>Ảnh</TableHead>
+                    {sortHeading("gears", "name", "Tên")}
+                    {sortHeading("gears", "brand", "Thương hiệu")}
+                    {sortHeading("gears", "category", "Loại")}
+                    {sortHeading("gears", "status", "Trạng thái")}
                     <TableHead className="text-[var(--secondary)] font-medium text-right">
                       Thao tác
                     </TableHead>
@@ -1643,7 +1609,7 @@ export default function AdminPage() {
                   {gearsLoading ? (
                     <TableRow>
                       <TableCell
-                        colSpan={5}
+                        colSpan={6}
                         className="text-center text-[var(--secondary)] py-10"
                       >
                         Đang tải…
@@ -1651,7 +1617,7 @@ export default function AdminPage() {
                     </TableRow>
                   ) : gears.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="py-12">
+                      <TableCell colSpan={6} className="py-12">
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <Monitor className="w-8 h-8" />
                           <p className="text-sm">
@@ -1661,11 +1627,12 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    getSortedGears().map((g) => (
+                    sortRows(gears, sorts.gears.field as keyof Gear | null, sorts.gears.direction).map((g) => (
                       <TableRow
                         key={g.id}
                         className="border-[var(--line)] hover:bg-[var(--panel)]"
                       >
+                        <TableCell><TableImage src={g.image_url} name={g.name} /></TableCell>
                         <TableCell className="font-medium text-[var(--ink)]">
                           {g.name}
                         </TableCell>
@@ -1676,13 +1643,7 @@ export default function AdminPage() {
                           {g.category || "—"}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            className={
-                              g.status === "active"
-                                ? "bg-[var(--panel)] text-[var(--highlight)] border border-[var(--line)]"
-                                : "bg-[var(--panel)] text-[var(--secondary)] border border-[var(--line)]"
-                            }
-                          >
+                          <Badge className={styles.status} data-status={g.status || "unknown"}>
                             {g.status === "active" ? "Đang dùng" : g.status === "retired" ? "Đã trải nghiệm" : "Chưa cập nhật"}
                           </Badge>
                         </TableCell>
@@ -1811,34 +1772,11 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-[var(--line)] hover:bg-transparent">
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      <button
-                        onClick={() => handleGameSort("title")}
-                        className="flex items-center hover:text-[var(--ink)] transition-colors"
-                      >
-                        Tên trò chơi
-                        {getSortIcon("title", gameSortField, gameSortDirection)}
-                      </button>
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      <button
-                        onClick={() => handleGameSort("publisher")}
-                        className="flex items-center hover:text-[var(--ink)] transition-colors"
-                      >
-                        Nhà phát hành
-                        {getSortIcon(
-                          "publisher",
-                          gameSortField,
-                          gameSortDirection,
-                        )}
-                      </button>
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Profile Link
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Trạng thái
-                    </TableHead>
+                    <TableHead>Ảnh</TableHead>
+                    {sortHeading("games", "title", "Tên trò chơi")}
+                    {sortHeading("games", "publisher", "Nhà phát hành")}
+                    {sortHeading("games", "profile_url", "Liên kết hồ sơ")}
+                    {sortHeading("games", "status", "Trạng thái")}
                     <TableHead className="text-[var(--secondary)] font-medium text-right">
                       Thao tác
                     </TableHead>
@@ -1848,7 +1786,7 @@ export default function AdminPage() {
                   {gamesLoading ? (
                     <TableRow>
                       <TableCell
-                        colSpan={5}
+                        colSpan={6}
                         className="text-center text-[var(--secondary)] py-10"
                       >
                         Đang tải…
@@ -1856,7 +1794,7 @@ export default function AdminPage() {
                     </TableRow>
                   ) : games.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="py-12">
+                      <TableCell colSpan={6} className="py-12">
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <Gamepad2 className="w-8 h-8" />
                           <p className="text-sm">
@@ -1866,11 +1804,12 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    getSortedGames().map((g) => (
+                    sortRows(games, sorts.games.field as keyof Game | null, sorts.games.direction).map((g) => (
                       <TableRow
                         key={g.id}
                         className="border-[var(--line)] hover:bg-[var(--panel)]"
                       >
+                        <TableCell><TableImage src={g.image_url} name={g.title} /></TableCell>
                         <TableCell className="font-medium text-[var(--ink)]">
                           {g.title}
                         </TableCell>
@@ -1892,17 +1831,8 @@ export default function AdminPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            className={
-                              g.status === "online"
-                                ? "bg-emerald-500/15 text-[var(--highlight)] border border-emerald-500/25"
-                                : "bg-[var(--panel)] text-[var(--secondary)] border border-[var(--line)]"
-                            }
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full mr-1.5 inline-block ${g.status === "online" ? "bg-[var(--highlight)]" : "bg-[var(--secondary)]"}`}
-                            />
-                            {GAME_STATUS_LABELS[g.status || ""] || g.status}
+                          <Badge className={styles.status} data-status={g.status || "unknown"}>
+                            {g.status === "online" ? "Trực tuyến" : g.status === "offline" ? "Ngoại tuyến" : "Chưa cập nhật"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-1">
@@ -2411,12 +2341,8 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-[var(--line)] hover:bg-transparent">
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      Nền tảng
-                    </TableHead>
-                    <TableHead className="text-[var(--secondary)] font-medium">
-                      URL
-                    </TableHead>
+                    {sortHeading("social", "platform", "Nền tảng")}
+                    {sortHeading("social", "url", "URL")}
                     <TableHead className="text-[var(--secondary)] font-medium text-right">
                       Thao tác
                     </TableHead>
@@ -2426,7 +2352,7 @@ export default function AdminPage() {
                   {socialsLoading ? (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={3}
                         className="text-center text-[var(--secondary)] py-10"
                       >
                         Đang tải…
@@ -2434,7 +2360,7 @@ export default function AdminPage() {
                     </TableRow>
                   ) : socials.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-12">
+                      <TableCell colSpan={3} className="py-12">
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <LinkIcon className="w-8 h-8" />
                           <p className="text-sm">
@@ -2444,7 +2370,7 @@ export default function AdminPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    socials.map((s) => (
+                    sortRows(socials, sorts.social.field as keyof SocialLink | null, sorts.social.direction).map((s) => (
                       <TableRow
                         key={s.id}
                         className="border-[var(--line)] hover:bg-[var(--panel)]"

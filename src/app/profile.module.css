@@ -250,4 +250,7 @@
   .previewAction { opacity: 1; transform: none; }
 }
 
+.location { color: var(--secondary); font-size: 15px; margin-bottom: 12px; }
+.cvNotice { color: var(--secondary); font-size: 14px; margin-top: 12px; }
+.cvNotice button { text-decoration: underline; min-height: 44px; }
 @media (hover: none) { .previewAction { opacity: 1; transform: none; } }
