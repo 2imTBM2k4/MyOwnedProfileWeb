@@ -48,16 +48,33 @@ const GAME_COVERS: Record<string, string> = {
 };
 
 export default function HoYoStats({ game, uid, server }: Props) {
+  const isConfigured = Boolean(
+    uid &&
+    server &&
+    uid !== "your-uid-here" &&
+    uid.trim() !== ""
+  );
+
   const [data, setData] = useState<HoYoData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isConfigured);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/hoyolab?game=${game}&uid=${uid}&server=${server}`)
-      .then((r) => r.json())
+    if (!isConfigured) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(
+      `/api/hoyolab?game=${encodeURIComponent(game)}&uid=${encodeURIComponent(uid)}&server=${encodeURIComponent(server)}`
+    )
+      .then(async (r) => {
+        if (!r.ok) return { enabled: false };
+        return r.json();
+      })
       .then((res) => {
         // Not configured - silently hide
-        if (res.enabled === false) {
+        if (!res || res.enabled === false) {
           setLoading(false);
           return;
         }
@@ -72,23 +89,13 @@ export default function HoYoStats({ game, uid, server }: Props) {
         }
         setLoading(false);
       })
-      .catch((err) => {
-        console.error("HoYoStats fetch failed:", err);
+      .catch(() => {
         setError("Failed to load");
         setLoading(false);
       });
-  }, [game, uid, server]);
+  }, [game, uid, server, isConfigured]);
 
-  if (loading) {
-    return (
-      <div className="mt-3 flex items-center gap-2 text-xs text-slate-600">
-        <div className="w-3 h-3 border border-slate-600 border-t-transparent rounded-full animate-spin" />
-        Loading stats...
-      </div>
-    );
-  }
-
-  if (!data || error) return null;
+  if (loading || !data || error) return null;
 
   const colorClass =
     GAME_COLORS[game] || "text-blue-400 border-blue-500/20 bg-blue-500/5";

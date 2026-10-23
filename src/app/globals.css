@@ -4,40 +4,363 @@
 
 @layer base {
   :root {
-    --background: 214 35% 7%;
-    --foreground: 210 40% 95%;
-    --card: 214 30% 10%;
-    --card-foreground: 210 40% 95%;
-    --popover: 214 30% 10%;
-    --popover-foreground: 210 40% 95%;
-    --primary: 210 100% 56%;
-    --primary-foreground: 214 35% 7%;
-    --secondary: 214 25% 16%;
-    --secondary-foreground: 210 40% 95%;
-    --muted: 214 25% 16%;
-    --muted-foreground: 215 20% 50%;
-    --accent: 210 100% 56%;
-    --accent-foreground: 214 35% 7%;
+    /* Light Mode - Clean, airy, crisp typography */
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-hover: #f1f5f9;
+    --surface-subtle: #e2e8f0;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-ink: #ffffff;
+
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 221 83% 53%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.85rem;
+  }
+
+  .dark {
+    /* Dark Mode - Midnight slate with rich contrast, not flat jet black */
+    --bg: #0b0f19;
+    --surface: #111827;
+    --surface-hover: #1a2234;
+    --surface-subtle: #1e293b;
+    --ink: #f8fafc;
+    --muted: #94a3b8;
+    --border: #1e293b;
+    --accent: #3b82f6;
+    --accent-hover: #60a5fa;
+    --accent-ink: #0b0f19;
+
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 7%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 222 47% 7%;
     --destructive: 0 62% 50%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214 25% 18%;
-    --input: 214 25% 16%;
-    --ring: 210 100% 56%;
-    --radius: 0.75rem;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 60%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Ẩn hoàn toàn thanh cuộn trình duyệt trên mọi thiết bị và trình duyệt */
+  html,
+  body {
+    -ms-overflow-style: none; /* Internet Explorer & Edge cũ */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge mới, Opera */
   }
 }
 
-@layer base {
-  * { @apply border-border; }
-  body { @apply bg-background text-foreground; }
+.font-display {
+  font-family: var(--font-display), var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Shimmer Skeleton Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+:root:not(.dark) .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* ==========================================================================
+   LIQUID GLASS & FLUID OPTICAL STYLING
+   ========================================================================== */
+
+/* Core Liquid Glass Surface */
+.glass-liquid {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 20px 40px -15px rgba(15, 23, 42, 0.06),
+    0 1px 3px 0 rgba(15, 23, 42, 0.04),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+.dark .glass-liquid {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.55),
+    0 2px 6px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Sticky / Fixed Liquid Header (Chỉ đổ bóng và viền đáy, tối ưu cuộn trang) */
+.glass-header {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 10px 30px -10px rgba(15, 23, 42, 0.06),
+    0 1px 2px 0 rgba(15, 23, 42, 0.04);
+}
+
+.dark .glass-header {
+  background: rgba(11, 15, 25, 0.78);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.55),
+    0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Subtle Secondary Glass (Pills, Secondary Cards, Filters) */
+.glass-liquid-subtle {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 4px 15px -3px rgba(15, 23, 42, 0.04),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.dark .glass-liquid-subtle {
+  background: rgba(17, 24, 39, 0.5);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 6px 20px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Interactive Glass Transition & Elastic Hover */
+.glass-interactive {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background-color 0.35s ease;
+}
+
+.glass-interactive:hover {
+  transform: translateY(-4px) scale(1.008);
+}
+
+:root:not(.dark) .glass-interactive:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow:
+    0 30px 60px -15px rgba(37, 99, 235, 0.12),
+    0 10px 25px -5px rgba(15, 23, 42, 0.06),
+    inset 0 2px 2px 0 rgba(255, 255, 255, 1);
+}
+
+.dark .glass-interactive:hover {
+  background: rgba(23, 33, 56, 0.75);
+  border-color: rgba(96, 165, 250, 0.35);
+  box-shadow:
+    0 35px 70px -15px rgba(0, 0, 0, 0.75),
+    0 0 35px -5px rgba(59, 130, 246, 0.25),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* Liquid Pill Button (Jelly / Water-Drop Reflection) */
+.glass-liquid-pill {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root:not(.dark) .glass-liquid-pill {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(59, 130, 246, 0.88));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 10px 25px -5px rgba(37, 99, 235, 0.4),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1.5px 1.5px 0 rgba(0, 0, 0, 0.15);
+}
+
+.dark .glass-liquid-pill {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.92), rgba(99, 102, 241, 0.85));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 12px 30px -5px rgba(59, 130, 246, 0.45),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1.5px 1.5px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-liquid-pill:hover {
+  transform: translateY(-1.5px) scale(1.02);
+  filter: brightness(1.08);
+}
+
+.glass-liquid-pill:active {
+  transform: translateY(1px) scale(0.97);
+  filter: brightness(0.96);
+}
+
+/* Morphing Fluid Organic Background Blobs */
+@keyframes liquid-morph-1 {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    border-radius: 40% 60% 70% 30% / 50% 60% 30% 60%;
+    transform: translate(45px, -35px) rotate(110deg) scale(1.12);
+  }
+  66% {
+    border-radius: 70% 30% 50% 50% / 30% 40% 60% 50%;
+    transform: translate(-35px, 30px) rotate(220deg) scale(0.92);
+  }
+}
+
+@keyframes liquid-morph-2 {
+  0%, 100% {
+    border-radius: 50% 50% 40% 60% / 40% 60% 50% 50%;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  40% {
+    border-radius: 65% 35% 60% 40% / 55% 45% 65% 35%;
+    transform: translate(-40px, -25px) rotate(-130deg) scale(1.08);
+  }
+  75% {
+    border-radius: 35% 65% 45% 55% / 45% 55% 35% 65%;
+    transform: translate(30px, 35px) rotate(-260deg) scale(0.96);
+  }
+}
+
+.animate-liquid-1 {
+  animation: liquid-morph-1 22s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-liquid-2 {
+  animation: liquid-morph-2 26s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* High-Contrast Liquid Heading Gradient */
+.text-gradient-liquid {
+  background: linear-gradient(135deg, #0f172a 20%, #1e40af 60%, #4338ca 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .text-gradient-liquid {
+  background: linear-gradient(135deg, #ffffff 30%, #93c5fd 70%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Specular Light Sweep Shimmer across Glass cards */
+.specular-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.specular-sheen::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 58%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.8s ease;
+  pointer-events: none;
+}
+
+.specular-sheen:hover::after {
+  transform: translateX(100%);
 }
 
 @layer utilities {
-  .animation-delay-150 {
-    animation-delay: 150ms;
+  .animation-delay-2000 {
+    animation-delay: 2000ms;
   }
-  
-  .animation-delay-300 {
-    animation-delay: 300ms;
+  .animation-delay-4000 {
+    animation-delay: 4000ms;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

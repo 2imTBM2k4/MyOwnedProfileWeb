@@ -1,0 +1,1853 @@
+{
+ "url": "http://127.0.0.1:3100",
+ "at": "2026-10-23T06:53:27.381Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.95,
+    0.94,
+    0.98
+   ],
+   "motion": {
+    "elements": 2,
+    "css": 2,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 2581,
+     "screens": 2.9,
+     "words": 286,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 8,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Trần Bình Minh.",
+     "words": 3,
+     "chars": 15,
+     "lines": 1,
+     "size": 116,
+     "vw": 8.1,
+     "font": "__Plus_Jakarta_Sans_6e1613",
+     "weight": 600,
+     "tracking": -0.065,
+     "leading": 1.1,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.8,
+     "top": 184,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Trần Bình Minh.",
+     "words": 3,
+     "lines": 1,
+     "size": 116,
+     "font": "__Plus_Jakarta_Sans_6e1613"
+    },
+    "headings": [
+     {
+      "text": "Trần Bình Minh.",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 116,
+      "vw": 8.1,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.065,
+      "leading": 1.1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.8,
+      "top": 184,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Những thứ mình làm.",
+      "words": 4,
+      "chars": 19,
+      "lines": 1,
+      "size": 44,
+      "vw": 3.1,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.27,
+      "top": 822,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Một chút về mình.",
+      "words": 4,
+      "chars": 17,
+      "lines": 1,
+      "size": 44,
+      "vw": 3.1,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.33,
+      "top": 1131,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Mình muốn hiểu cả những gì diễn ra phía sau một giao diện.",
+      "words": 13,
+      "chars": 58,
+      "lines": 2,
+      "size": 30,
+      "vw": 2.1,
+      "font": "__Inter_0e3364",
+      "weight": 400,
+      "tracking": -0.035,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.42,
+      "top": 1131,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Ngoài những dòng mã.",
+      "words": 4,
+      "chars": 20,
+      "lines": 1,
+      "size": 44,
+      "vw": 3.1,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 1788,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Cùng trò chuyện nhé.",
+      "words": 4,
+      "chars": 20,
+      "lines": 1,
+      "size": 58,
+      "vw": 4,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.73,
+      "top": 2213,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 6,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 1,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "__Inter_0e3364",
+       "share": 0.93,
+       "mono": false
+      },
+      {
+       "family": "__Plus_Jakarta_Sans_6e1613",
+       "share": 0.07,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      18,
+      23,
+      30,
+      44,
+      58,
+      116
+     ],
+     "sizeCount": 10,
+     "notLoaded": [],
+     "body": {
+      "font": "__Inter_0e3364",
+      "size": 16,
+      "leading": 1.65,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 8.5
+     },
+     "measureChars": 68,
+     "max": {
+      "size": 116,
+      "vw": 8.1,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "text": "Trần Bình Minh."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#0b0f19",
+     "bodyBgHsl": {
+      "h": 223,
+      "s": 0.39,
+      "l": 0.07
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#191c19",
+       "top": 0,
+       "hsl": {
+        "h": 120,
+        "s": 0.06,
+        "l": 0.1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#b1b9ae",
+       "share": 0.69
+      },
+      {
+       "color": "#eceee7",
+       "share": 0.29
+      },
+      {
+       "color": "#1b261b",
+       "share": 0.02
+      },
+      {
+       "color": "#b9cba8",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#c6d5b7",
+      "hsl": {
+       "h": 90,
+       "s": 0.26,
+       "l": 0.78
+      },
+      "fg": "#1b261b"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đến nội dung chính",
+      "Xem dự án"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 5,
+     "fixed": false,
+     "height": 108,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "__inter_0e3364",
+     "__inter_fallback_0e3364",
+     "__plus_jakarta_sans_6e1613",
+     "__plus_jakarta_sans_fallback_6e1613"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 2581,
+    "margins": {
+     "left": 144,
+     "right": 144
+    },
+    "sections": [
+     {
+      "sel": "section#hero.profile_hero__959Qm",
+      "tag": "section",
+      "top": 108,
+      "height": 596,
+      "words": 58,
+      "media": 0,
+      "middle": 273,
+      "heading": {
+       "text": "Trần Bình Minh.",
+       "size": 116,
+       "tag": "h1"
+      },
+      "left": 144,
+      "right": 144,
+      "textLeft": 144,
+      "textRight": 144,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#projects.profile_section__uLbu7",
+      "tag": "section",
+      "top": 704,
+      "height": 290,
+      "words": 18,
+      "media": 0,
+      "middle": 587,
+      "heading": {
+       "text": "Những thứ mình làm.",
+       "size": 44,
+       "tag": "h2"
+      },
+      "left": 144,
+      "right": 144,
+      "textLeft": 144,
+      "textRight": 144,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#about.profile_section__uLbu7.profile_about__4gNxf",
+      "tag": "section",
+      "top": 1013,
+      "height": 658,
+      "words": 114,
+      "media": 0,
+      "middle": 210,
+      "heading": {
+       "text": "Một chút về mình.",
+       "size": 44,
+       "tag": "h2"
+      },
+      "left": 144,
+      "right": 164,
+      "textLeft": 144,
+      "textRight": 164,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#gears.profile_section__uLbu7.profile_gears__gzRAP",
+      "tag": "section",
+      "top": 1670,
+      "height": 363,
+      "words": 26,
+      "media": 0,
+      "middle": 587,
+      "heading": {
+       "text": "Ngoài những dòng mã.",
+       "size": 44,
+       "tag": "h2"
+      },
+      "left": 144,
+      "right": 174,
+      "textLeft": 144,
+      "textRight": 174,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#contact.profile_section__uLbu7.profile_contact__fRtr",
+      "tag": "section",
+      "top": 2149,
+      "height": 334,
+      "words": 25,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Cùng trò chuyện nhé.",
+       "size": 58,
+       "tag": "h2"
+      },
+      "left": 192,
+      "right": 436,
+      "textLeft": 192,
+      "textRight": 436,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Trần Bình Minh.",
+      "size": 116,
+      "top": 184,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 144,
+      "n": 6
+     },
+     {
+      "x": 686,
+      "n": 2
+     },
+     {
+      "x": 192,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 9,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.18,
+    "voidBox": {
+     "x": 540,
+     "y": 480,
+     "w": 540,
+     "h": 420
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    0.95,
+    0.98,
+    0.95,
+    0.96
+   ],
+   "motion": {
+    "elements": 2,
+    "css": 2,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 3232,
+     "screens": 3.2,
+     "words": 374,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 19,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 2,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "1775448037701-7hg7sszbcoi.jpg",
+      "1783376828914-vl6to8o4nwo.jpeg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Trần Bình Minh.",
+     "words": 3,
+     "chars": 15,
+     "lines": 1,
+     "size": 66.8,
+     "vw": 8.7,
+     "font": "__Plus_Jakarta_Sans_6e1613",
+     "weight": 600,
+     "tracking": -0.065,
+     "leading": 1.1,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.92,
+     "top": 154,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Trần Bình Minh.",
+     "words": 3,
+     "lines": 1,
+     "size": 66.8,
+     "font": "__Plus_Jakarta_Sans_6e1613"
+    },
+    "headings": [
+     {
+      "text": "Trần Bình Minh.",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 66.8,
+      "vw": 8.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.065,
+      "leading": 1.1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 154,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Những thứ mình làm.",
+      "words": 4,
+      "chars": 19,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 699,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Porfolio",
+      "words": 1,
+      "chars": 8,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.84,
+      "top": 852,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "DroneFood",
+      "words": 1,
+      "chars": 9,
+      "lines": 1,
+      "size": 32,
+      "vw": 4.2,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.84,
+      "top": 1189,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Một chút về mình.",
+      "words": 4,
+      "chars": 17,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 1577,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Ngoài những dòng mã.",
+      "words": 4,
+      "chars": 20,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.63,
+      "top": 2242,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Cùng trò chuyện nhé.",
+      "words": 4,
+      "chars": 20,
+      "lines": 1,
+      "size": 35.3,
+      "vw": 4.6,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 2795,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 7,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "__Inter_0e3364",
+       "share": 0.94,
+       "mono": false
+      },
+      {
+       "family": "__Plus_Jakarta_Sans_6e1613",
+       "share": 0.06,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      18,
+      20,
+      23,
+      25,
+      30,
+      32,
+      35,
+      67
+     ],
+     "sizeCount": 12,
+     "notLoaded": [],
+     "body": {
+      "font": "__Inter_0e3364",
+      "size": 16,
+      "leading": 1.65,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 8.5
+     },
+     "measureChars": 81,
+     "max": {
+      "size": 66.8,
+      "vw": 8.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "text": "Trần Bình Minh."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.02,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Đang phát triển",
+      "above": "Porfolio",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 13,
+      "top": 803
+     },
+     {
+      "text": "Đang phát triển",
+      "above": "DroneFood",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 13,
+      "top": 1140
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#0b0f19",
+     "bodyBgHsl": {
+      "h": 223,
+      "s": 0.39,
+      "l": 0.07
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#191c19",
+       "top": 0,
+       "hsl": {
+        "h": 120,
+        "s": 0.06,
+        "l": 0.1
+       }
+      },
+      {
+       "color": "#252b25",
+       "top": 2755,
+       "hsl": {
+        "h": 120,
+        "s": 0.08,
+        "l": 0.16
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#b1b9ae",
+       "share": 0.71
+      },
+      {
+       "color": "#eceee7",
+       "share": 0.27
+      },
+      {
+       "color": "#1b261b",
+       "share": 0.01
+      },
+      {
+       "color": "#b9cba8",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#c6d5b7",
+      "hsl": {
+       "h": 90,
+       "s": 0.26,
+       "l": 0.78
+      },
+      "fg": "#1b261b"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đến nội dung chính",
+      "Xem dự án"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 3,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 5,
+     "fixed": false,
+     "height": 94,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "__inter_0e3364",
+     "__inter_fallback_0e3364",
+     "__plus_jakarta_sans_6e1613",
+     "__plus_jakarta_sans_fallback_6e1613"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 3232,
+    "margins": {
+     "left": 32,
+     "right": 32
+    },
+    "sections": [
+     {
+      "sel": "section#hero.profile_hero__959Qm",
+      "tag": "section",
+      "top": 94,
+      "height": 503,
+      "words": 58,
+      "media": 0,
+      "middle": 124,
+      "heading": {
+       "text": "Trần Bình Minh.",
+       "size": 67,
+       "tag": "h1"
+      },
+      "left": 32,
+      "right": 32,
+      "textLeft": 32,
+      "textRight": 32,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#projects.profile_section__uLbu7",
+      "tag": "section",
+      "top": 597,
+      "height": 891,
+      "words": 101,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Porfolio",
+       "size": 32,
+       "tag": "h3"
+      },
+      "left": 32,
+      "right": 32,
+      "textLeft": 32,
+      "textRight": 32,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#about.profile_section__uLbu7.profile_about__4gNxf",
+      "tag": "section",
+      "top": 1489,
+      "height": 666,
+      "words": 114,
+      "media": 0,
+      "middle": 103,
+      "heading": {
+       "text": "Một chút về mình.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 32,
+      "right": 42,
+      "textLeft": 32,
+      "textRight": 42,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#gears.profile_section__uLbu7.profile_gears__gzRAP",
+      "tag": "section",
+      "top": 2154,
+      "height": 513,
+      "words": 41,
+      "media": 3,
+      "middle": 18,
+      "heading": {
+       "text": "Ngoài những dòng mã.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 32,
+      "right": 32,
+      "textLeft": 32,
+      "textRight": 57,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#contact.profile_section__uLbu7.profile_contact__fRtr",
+      "tag": "section",
+      "top": 2755,
+      "height": 380,
+      "words": 28,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Cùng trò chuyện nhé.",
+       "size": 35,
+       "tag": "h2"
+      },
+      "left": 64,
+      "right": 351,
+      "textLeft": 64,
+      "textRight": 351,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Trần Bình Minh.",
+      "size": 67,
+      "top": 154,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 32,
+      "n": 7
+     },
+     {
+      "x": 62,
+      "n": 5
+     },
+     {
+      "x": 361,
+      "n": 2
+     },
+     {
+      "x": 273,
+      "n": 1
+     },
+     {
+      "x": 513,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 16,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 6,
+   "filled": [
+    0.95,
+    1,
+    0.89,
+    0.94,
+    0.95,
+    0.97
+   ],
+   "motion": {
+    "elements": 2,
+    "css": 2,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 4426,
+     "screens": 5.2,
+     "words": 372,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 19,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 3,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "1775448037701-7hg7sszbcoi.jpg",
+      "1783376828914-vl6to8o4nwo.jpeg",
+      "1783376890864-awblwdr6n44.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Trần Bình Minh.",
+     "words": 3,
+     "chars": 15,
+     "lines": 2,
+     "size": 54.6,
+     "vw": 14,
+     "font": "__Plus_Jakarta_Sans_6e1613",
+     "weight": 600,
+     "tracking": -0.065,
+     "leading": 1.08,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.7,
+     "top": 167,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Trần Bình Minh.",
+     "words": 3,
+     "lines": 2,
+     "size": 54.6,
+     "font": "__Plus_Jakarta_Sans_6e1613"
+    },
+    "headings": [
+     {
+      "text": "silentboiz.",
+      "words": 1,
+      "chars": 11,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "__Inter_0e3364",
+      "weight": 650,
+      "tracking": -0.055,
+      "leading": 1.65,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.25,
+      "top": 18,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Trần Bình Minh.",
+      "words": 3,
+      "chars": 15,
+      "lines": 2,
+      "size": 54.6,
+      "vw": 14,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.065,
+      "leading": 1.08,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.7,
+      "top": 167,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Những thứ mình làm.",
+      "words": 4,
+      "chars": 19,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.67,
+      "top": 817,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Porfolio",
+      "words": 1,
+      "chars": 8,
+      "lines": 1,
+      "size": 34,
+      "vw": 8.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.76,
+      "top": 990,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "DroneFood",
+      "words": 1,
+      "chars": 9,
+      "lines": 1,
+      "size": 34,
+      "vw": 8.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.76,
+      "top": 1383,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Một chút về mình.",
+      "words": 4,
+      "chars": 17,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 1820,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Mình muốn hiểu cả những gì diễn ra phía sau một giao diện.",
+      "words": 13,
+      "chars": 58,
+      "lines": 2,
+      "size": 25,
+      "vw": 6.4,
+      "font": "__Inter_0e3364",
+      "weight": 400,
+      "tracking": -0.035,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 1946,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Ngoài những dòng mã.",
+      "words": 4,
+      "chars": 20,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 2599,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Cùng trò chuyện nhé.",
+      "words": 4,
+      "chars": 20,
+      "lines": 2,
+      "size": 34,
+      "vw": 8.7,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 1.18,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.76,
+      "top": 3879,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 1,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "__Inter_0e3364",
+       "share": 0.94,
+       "mono": false
+      },
+      {
+       "family": "__Plus_Jakarta_Sans_6e1613",
+       "share": 0.06,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      18,
+      22,
+      25,
+      30,
+      34,
+      55
+     ],
+     "sizeCount": 10,
+     "notLoaded": [],
+     "body": {
+      "font": "__Inter_0e3364",
+      "size": 16,
+      "leading": 1.65,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 8.5
+     },
+     "measureChars": 37,
+     "max": {
+      "size": 54.6,
+      "vw": 14,
+      "font": "__Plus_Jakarta_Sans_6e1613",
+      "text": "Trần Bình Minh."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.02,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Đang phát triển",
+      "above": "Porfolio",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 13,
+      "top": 945
+     },
+     {
+      "text": "Đang phát triển",
+      "above": "DroneFood",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 13,
+      "top": 1338
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#0b0f19",
+     "bodyBgHsl": {
+      "h": 223,
+      "s": 0.39,
+      "l": 0.07
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#191c19",
+       "top": 0,
+       "hsl": {
+        "h": 120,
+        "s": 0.06,
+        "l": 0.1
+       }
+      },
+      {
+       "color": "#252b25",
+       "top": 919,
+       "hsl": {
+        "h": 120,
+        "s": 0.08,
+        "l": 0.16
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#b1b9ae",
+       "share": 0.71
+      },
+      {
+       "color": "#eceee7",
+       "share": 0.27
+      },
+      {
+       "color": "#1b261b",
+       "share": 0.01
+      },
+      {
+       "color": "#b9cba8",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#c6d5b7",
+      "hsl": {
+       "h": 90,
+       "s": 0.26,
+       "l": 0.78
+      },
+      "fg": "#1b261b"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Đến nội dung chính",
+      "Xem dự án"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 3,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 5,
+     "fixed": false,
+     "height": 113,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "__inter_0e3364",
+     "__inter_fallback_0e3364",
+     "__plus_jakarta_sans_6e1613",
+     "__plus_jakarta_sans_fallback_6e1613"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 4426,
+    "margins": {
+     "left": 22,
+     "right": 22
+    },
+    "sections": [
+     {
+      "sel": "section#hero.profile_hero__959Qm",
+      "tag": "section",
+      "top": 113,
+      "height": 627,
+      "words": 58,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Trần Bình Minh.",
+       "size": 55,
+       "tag": "h1"
+      },
+      "left": 22,
+      "right": 27,
+      "textLeft": 22,
+      "textRight": 27,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#projects.profile_section__uLbu7",
+      "tag": "section",
+      "top": 741,
+      "height": 1003,
+      "words": 101,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Porfolio",
+       "size": 34,
+       "tag": "h3"
+      },
+      "left": 22,
+      "right": 46,
+      "textLeft": 22,
+      "textRight": 46,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#about.profile_section__uLbu7.profile_about__4gNxf",
+      "tag": "section",
+      "top": 1744,
+      "height": 780,
+      "words": 114,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Một chút về mình.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 22,
+      "right": 25,
+      "textLeft": 22,
+      "textRight": 25,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#gears.profile_section__uLbu7.profile_gears__gzRAP",
+      "tag": "section",
+      "top": 2523,
+      "height": 1246,
+      "words": 41,
+      "media": 3,
+      "middle": 0,
+      "heading": {
+       "text": "Ngoài những dòng mã.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 22,
+      "right": 22,
+      "textLeft": 22,
+      "textRight": 22,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#contact.profile_section__uLbu7.profile_contact__fRtr",
+      "tag": "section",
+      "top": 3845,
+      "height": 436,
+      "words": 28,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Cùng trò chuyện nhé.",
+       "size": 34,
+       "tag": "h2"
+      },
+      "left": 46,
+      "right": 74,
+      "textLeft": 46,
+      "textRight": 74,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.profile_footer__Ge4Vv",
+      "tag": "footer",
+      "top": 4282,
+      "height": 144,
+      "words": 15,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 22,
+      "right": 136,
+      "textLeft": 22,
+      "textRight": 136,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Trần Bình Minh.",
+      "size": 55,
+      "top": 167,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 22,
+      "n": 11
+     },
+     {
+      "x": 46,
+      "n": 5
+     }
+    ],
+    "leftBlocks": 16,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "size-count",
+   "width": 1440,
+   "message": "10 different font sizes (13, 14, 15, 16, 18, 23, 30, 44, 58, 116).",
+   "fix": "A page needs about five: display, heading, lead, body, small.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "few-pictures",
+   "width": 1440,
+   "message": "Only 0 picture(s) on the page (0 photographs, footage or raster images, 0 interface fragments). Drawings in SVG do not count.",
+   "fix": "Find real pictures of the subject's world with scripts/assets.mjs (photographs, archival images, maps, engravings, footage), download them to assets/ and give them room: a hero picture, one per section that has a subject, a full-width band. At least four, usually six to twelve."
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "WARN",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt Erode and Erode, but the page renders __Inter_0e3364, __Plus_Jakarta_Sans_6e1613.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "still-page",
+   "width": 1440,
+   "message": "Only 2 element(s) moved while the page loaded and scrolled.",
+   "fix": "Build the motion layer (SKILL.md step 9, references/motion.md): the signature move, an entrance for the parts of every section, feedback on every control, and one moving picture. Transform and opacity only, with a reduced-motion fallback."
+  },
+  {
+   "level": "FAIL",
+   "id": "eyebrow",
+   "width": 768,
+   "message": "2 eyebrow/kicker label(s) above headings: \"Đang phát triển\" above \"Porfolio\"; \"Đang phát triển\" above \"DroneFood\"",
+   "fix": "Delete them. If the label carried real information, fold it into the headline or the supporting sentence.",
+   "alsoAt": [
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "C:\\Users\\Silentboiz\\Desktop\\Working\\MyOwnedProfileWeb\\.taste-skill\\profile-refresh\\after\\desktop-fold.jpg",
+   "pages": [
+    "C:\\Users\\Silentboiz\\Desktop\\Working\\MyOwnedProfileWeb\\.taste-skill\\profile-refresh\\after\\desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "C:\\Users\\Silentboiz\\Desktop\\Working\\MyOwnedProfileWeb\\.taste-skill\\profile-refresh\\after\\tablet-fold.jpg",
+   "pages": [
+    "C:\\Users\\Silentboiz\\Desktop\\Working\\MyOwnedProfileWeb\\.taste-skill\\profile-refresh\\after\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "C:\\Users\\Silentboiz\\Desktop\\Working\\MyOwnedProfileWeb\\.taste-skill\\profile-refresh\\after\\mobile-fold.jpg",
+   "pages": [
+    "C:\\Users\\Silentboiz\\Desktop\\Working\\MyOwnedProfileWeb\\.taste-skill\\profile-refresh\\after\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

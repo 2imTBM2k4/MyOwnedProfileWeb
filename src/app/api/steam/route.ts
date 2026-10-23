@@ -38,6 +38,9 @@ async function resolveSteamId(input: string): Promise<string> {
     `?key=${key}&vanityurl=${vanityName}`;
 
   const response = await fetch(resolveUrl);
+  if (!response.ok) {
+    throw new Error(`Steam API error: ${response.status}`);
+  }
   const data = await response.json();
 
   if (data.response?.success === 1) {
@@ -142,7 +145,8 @@ async function fetchSteamStats(appid: string, steamid: string) {
 }
 
 export async function GET(request: Request) {
-  if (!process.env.STEAM_API_KEY) {
+  const key = process.env.STEAM_API_KEY;
+  if (!key || key === "your-steam-api-key-here" || key.trim() === "") {
     return NextResponse.json({ enabled: false });
   }
 
@@ -150,11 +154,13 @@ export async function GET(request: Request) {
   const appid = searchParams.get("appid");
   const steamidInput = searchParams.get("steamid");
 
-  if (!appid || !steamidInput) {
-    return NextResponse.json(
-      { error: "Missing appid or steamid" },
-      { status: 400 },
-    );
+  if (
+    !appid ||
+    !steamidInput ||
+    steamidInput === "your-steam-id-here" ||
+    appid === "your-steam-appid-here"
+  ) {
+    return NextResponse.json({ enabled: false });
   }
 
   try {
@@ -165,8 +171,7 @@ export async function GET(request: Request) {
   } catch (err: any) {
     console.error("Steam stats error:", err?.message);
     return NextResponse.json(
-      { error: err?.message || "Failed to fetch Steam stats" },
-      { status: 500 },
+      { enabled: false, error: err?.message || "Failed to fetch Steam stats" }
     );
   }
 }

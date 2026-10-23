@@ -109,7 +109,15 @@ async function fetchHoYoStats(game: string, uid: string, server: string) {
 }
 
 export async function GET(request: Request) {
-  if (!process.env.HOYOLAB_LTOKEN || !process.env.HOYOLAB_LTUID) {
+  const ltoken = process.env.HOYOLAB_LTOKEN;
+  const ltuid = process.env.HOYOLAB_LTUID;
+  if (
+    !ltoken ||
+    !ltuid ||
+    ltoken === "your-hoyolab-ltoken-here" ||
+    ltuid === "your-hoyolab-ltuid-here" ||
+    ltoken.trim() === ""
+  ) {
     return NextResponse.json({ enabled: false });
   }
 

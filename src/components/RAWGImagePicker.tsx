@@ -79,7 +79,8 @@ export default function RAWGImagePicker({
       <div className="flex gap-2">
         <Input
           type="text"
-          placeholder="Search game on RAWG..."
+          placeholder="Tìm trò chơi trên RAWG…"
+          aria-label="Tìm ảnh trò chơi trên RAWG"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -87,13 +88,15 @@ export default function RAWGImagePicker({
               handleSearch();
             }
           }}
-          className="flex-1"
+          className="flex-1 min-w-0 h-11 bg-[var(--field)] text-[var(--ink)] border-[var(--line)] placeholder:text-[var(--secondary)] focus-visible:ring-[var(--highlight)]"
         />
         <Button
           type="button"
           onClick={() => handleSearch()}
           disabled={loading || !searchQuery.trim()}
           variant="outline"
+          aria-label="Tìm ảnh"
+          className="h-11 w-11 shrink-0 border-[var(--line)] bg-[var(--page)] text-[var(--ink)] hover:bg-[var(--panel)] hover:text-[var(--ink)]"
         >
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -105,7 +108,7 @@ export default function RAWGImagePicker({
 
       {/* Error Message */}
       {error && (
-        <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+        <div className="text-sm text-[var(--danger)] border border-[var(--line)] rounded-lg p-3" role="alert">
           {error}
         </div>
       )}
@@ -113,8 +116,8 @@ export default function RAWGImagePicker({
       {/* Results Grid */}
       {results.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm text-slate-400">
-            Found {results.length} results. Click to select:
+          <p className="text-sm text-[var(--secondary)]">
+            {results.length} kết quả. Nhấn ảnh để chọn.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
             {results.map((game) => (
@@ -122,10 +125,10 @@ export default function RAWGImagePicker({
                 key={game.id}
                 type="button"
                 onClick={() => handleSelectImage(game.image)}
-                className={`relative group rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                className={`relative group rounded-lg overflow-hidden border-2 transition-transform hover:scale-105 ${
                   selectedImage === game.image
-                    ? "border-blue-500 ring-2 ring-blue-500/50"
-                    : "border-white/10 hover:border-blue-400/50"
+                    ? "border-[var(--highlight)] ring-2 ring-[var(--highlight)]"
+                    : "border-[var(--line)] hover:border-[var(--highlight)]"
                 }`}
               >
                 <div className="aspect-[3/4] relative">
@@ -135,20 +138,20 @@ export default function RAWGImagePicker({
                     className="w-full h-full object-cover"
                   />
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="absolute bottom-0 left-0 right-0 p-2">
                       <p className="text-xs text-white font-semibold line-clamp-2">
                         {game.name}
                       </p>
                       <p className="text-xs text-slate-300">
-                        ⭐ {game.rating} • {game.released?.split("-")[0]}
+                        {game.rating} điểm · {game.released?.split("-")[0]}
                       </p>
                     </div>
                   </div>
                   {/* Selected Indicator */}
                   {selectedImage === game.image && (
-                    <div className="absolute top-2 right-2 bg-blue-500 rounded-full p-1">
-                      <Check className="w-4 h-4 text-white" />
+                    <div className="absolute top-2 right-2 bg-[var(--button)] rounded-full p-1">
+                      <Check className="w-4 h-4 text-[var(--button-ink)]" />
                     </div>
                   )}
                 </div>
@@ -160,8 +163,8 @@ export default function RAWGImagePicker({
 
       {/* Selected Image Preview */}
       {selectedImage && (
-        <div className="border border-green-500/30 bg-green-500/5 rounded-lg p-3">
-          <p className="text-sm text-green-400 mb-2">✓ Image selected</p>
+        <div className="border border-[var(--line)] bg-[var(--panel)] rounded-lg p-3">
+          <p className="text-sm text-[var(--highlight)] mb-2">Đã chọn ảnh</p>
           <img
             src={selectedImage}
             alt="Selected"

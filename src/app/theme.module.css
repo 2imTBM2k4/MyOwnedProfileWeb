@@ -1,0 +1,19 @@
+.theme {
+  --page: #f6f7f3;
+  --panel: #e9ece5;
+  --ink: #242b25;
+  --secondary: #545e55;
+  --highlight: #375840;
+  --button: #293b2e;
+  --button-ink: #fff;
+}
+
+:global(.dark) .theme {
+  --page: #191c19;
+  --panel: #252b25;
+  --ink: #eceee7;
+  --secondary: #b1b9ae;
+  --highlight: #b9cba8;
+  --button: #c6d5b7;
+  --button-ink: #1b261b;
+}

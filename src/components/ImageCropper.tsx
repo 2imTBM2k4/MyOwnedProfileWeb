@@ -48,12 +48,12 @@ export default function ImageCropper({ imageSrc, aspect = 3 / 1, onDone, onCance
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
+    <div className="fixed inset-0 z-50 bg-[var(--page)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <span className="text-sm font-medium text-white">Chỉnh vùng hiển thị</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
+        <span className="text-sm font-medium text-[var(--ink)]">Chỉnh vùng hiển thị</span>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onCancel} className="text-slate-400 hover:text-white">
+          <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Hủy cắt ảnh" className="text-[var(--secondary)] hover:text-[var(--ink)] hover:bg-[var(--panel)]">
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -72,24 +72,25 @@ export default function ImageCropper({ imageSrc, aspect = 3 / 1, onDone, onCance
           showGrid={true}
           style={{
             containerStyle: { background: '#000' },
-            cropAreaStyle: { border: '2px solid #3b82f6' },
+            cropAreaStyle: { border: '2px solid var(--highlight)' },
           }}
         />
       </div>
 
       {/* Zoom + confirm */}
-      <div className="flex items-center justify-between px-4 py-4 border-t border-white/10 bg-[#0d1520]">
+      <div className="flex items-center justify-between gap-3 px-4 py-4 border-t border-[var(--line)] bg-[var(--page)]">
         <div className="flex items-center gap-3">
-          <ZoomOut className="w-4 h-4 text-slate-400" />
+          <ZoomOut className="w-4 h-4 text-[var(--secondary)]" />
           <input
             type="range" min={1} max={3} step={0.05}
             value={zoom}
             onChange={e => setZoom(Number(e.target.value))}
-            className="w-32 accent-blue-500"
+            className="w-20 sm:w-32 accent-[var(--highlight)]"
+            aria-label="Độ phóng to ảnh"
           />
-          <ZoomIn className="w-4 h-4 text-slate-400" />
+          <ZoomIn className="w-4 h-4 text-[var(--secondary)]" />
         </div>
-        <Button onClick={handleDone} className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
+        <Button onClick={handleDone} className="bg-[var(--button)] hover:bg-[var(--button)] text-[var(--button-ink)] hover:opacity-90 gap-2">
           <Check className="w-4 h-4" /> Xác nhận
         </Button>
       </div>

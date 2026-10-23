@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Children, cloneElement, isValidElement, useId, useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,8 @@ import {
 import { SocialIcon } from "@/components/SocialIcon";
 import ImageCropper from "@/components/ImageCropper";
 import RAWGImagePicker from "@/components/RAWGImagePicker";
+import ThemeToggle from "@/components/ThemeToggle";
+import styles from "./admin.module.css";
 
 type Profile = {
   username: string;
@@ -103,12 +105,15 @@ function Field({
   label: string;
   children: React.ReactNode;
 }) {
+  const id = useId();
   return (
     <div className="space-y-1.5">
-      <Label className="text-slate-400 text-xs uppercase tracking-wider">
+      <Label className={styles.label} htmlFor={id}>
         {label}
       </Label>
-      {children}
+      {Children.map(children, child => isValidElement<{ id?: string }>(child) &&
+        (child.type === SI || child.type === SS || child.type === "textarea")
+        ? cloneElement(child, { id }) : child)}
     </div>
   );
 }
@@ -117,25 +122,28 @@ function SI(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <Input
       {...props}
-      className="bg-[#0a1220] border-white/10 focus:border-blue-500/50 text-white placeholder:text-slate-600 h-9"
+      className={styles.input}
     />
   );
 }
 
 function SS({
+  id,
   value,
   onChange,
   children,
 }: {
+  id?: string;
   value: string;
   onChange: (v: string) => void;
   children: React.ReactNode;
 }) {
   return (
     <select
+      id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-[#0a1220] border border-white/10 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500/50"
+      className={styles.select}
     >
       {children}
     </select>
@@ -242,12 +250,12 @@ function ImageUpload({
 
   return (
     <div className="space-y-2">
-      <Label className="text-slate-400 text-xs uppercase tracking-wider">
+      <Label className="text-[var(--secondary)] text-sm">
         {label}
       </Label>
       <div
         onClick={() => !uploading && inputRef.current?.click()}
-        className="relative cursor-pointer group border-2 border-dashed border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all"
+        className="relative cursor-pointer group border-2 border-dashed border-[var(--line)] rounded-xl overflow-hidden hover:border-[var(--highlight)] transition-colors"
         style={{ minHeight: bucket === "covers" ? 140 : 100 }}
       >
         {value ? (
@@ -258,18 +266,18 @@ function ImageUpload({
             style={{ minHeight: bucket === "covers" ? 140 : 100 }}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 py-8 text-slate-600">
+          <div className="flex flex-col items-center justify-center gap-2 py-8 text-[var(--secondary)]">
             <Upload className="w-6 h-6" />
-            <span className="text-xs">Click để chọn ảnh</span>
+            <span className="text-xs">Nhấn để chọn ảnh</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 text-white text-sm font-medium">
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-colors flex items-center justify-center gap-2 text-white text-sm font-medium">
           <Upload className="w-4 h-4" />
           {uploading ? "Đang upload..." : "Đổi ảnh"}
         </div>
         {uploading && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[var(--highlight)] border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -310,10 +318,10 @@ function InlineImageUpload({
     <div className="flex items-center gap-3">
       <div
         onClick={() => !uploading && inputRef.current?.click()}
-        className="w-16 h-16 rounded-lg border border-white/10 bg-[#0a1220] flex items-center justify-center cursor-pointer hover:border-blue-500/40 overflow-hidden shrink-0 transition-all"
+        className="w-16 h-16 rounded-lg border border-[var(--line)] bg-[var(--field)] flex items-center justify-center cursor-pointer hover:border-[var(--highlight)] overflow-hidden shrink-0 transition-colors"
       >
         {uploading ? (
-          <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-[var(--highlight)] border-t-transparent rounded-full animate-spin" />
         ) : value ? (
           <img
             src={value}
@@ -321,7 +329,7 @@ function InlineImageUpload({
             className="w-full h-full object-contain p-1"
           />
         ) : (
-          <ImageIcon className="w-5 h-5 text-slate-600" />
+          <ImageIcon className="w-5 h-5 text-[var(--secondary)]" />
         )}
       </div>
       <div className="flex-1">
@@ -330,8 +338,8 @@ function InlineImageUpload({
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
-        <p className="text-xs text-slate-600 mt-1">
-          Click ô vuông để upload từ máy
+        <p className="text-xs text-[var(--secondary)] mt-1">
+          Nhấn ô ảnh để tải lên từ máy
         </p>
       </div>
       <input
@@ -461,6 +469,21 @@ export default function AdminPage() {
     display_order: "",
   });
 
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectOpen, setProjectOpen] = useState(false);
+  const [projectEditId, setProjectEditId] = useState<string | null>(null);
+  const [projectForm, setProjectForm] = useState({
+    title: "",
+    description: "",
+    github_url: "",
+    demo_url: "",
+    image_url: "",
+    status: "active" as "active" | "completed",
+    tags: "",
+    isFeatured: false,
+  });
+
   const fetchProfile = async () => {
     const d = await fetch("/api/profile").then((r) => r.json());
     if (d)
@@ -486,12 +509,24 @@ export default function AdminPage() {
     setSocials(await fetch("/api/social-links").then((r) => r.json()));
     setSocialsLoading(false);
   };
+  const fetchProjects = async () => {
+    setProjectsLoading(true);
+    try {
+      const d = await fetch("/api/projects").then((r) => r.json());
+      setProjects(Array.isArray(d) ? d : []);
+    } catch {
+      setProjects([]);
+    } finally {
+      setProjectsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchProfile();
     fetchGears();
     fetchGames();
     fetchSocials();
+    fetchProjects();
   }, []);
 
   const saveProfile = async () => {
@@ -768,25 +803,139 @@ export default function AdminPage() {
     fetchSocials();
   };
 
+  const handleProjectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let tagList = projectForm.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    if (projectForm.isFeatured) {
+      if (!tagList.includes("featured")) tagList.push("featured");
+    } else {
+      tagList = tagList.filter((t) => t !== "featured");
+    }
+
+    const body = JSON.stringify({
+      title: projectForm.title,
+      description: projectForm.description || null,
+      github_url: projectForm.github_url || null,
+      demo_url: projectForm.demo_url || null,
+      image_url: projectForm.image_url || null,
+      status: projectForm.status,
+      tags: tagList,
+    });
+
+    if (projectEditId) {
+      await fetch(`/api/projects/${projectEditId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+    } else {
+      await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+    }
+
+    setProjectOpen(false);
+    setProjectEditId(null);
+    setProjectForm({
+      title: "",
+      description: "",
+      github_url: "",
+      demo_url: "",
+      image_url: "",
+      status: "active",
+      tags: "",
+      isFeatured: false,
+    });
+    fetchProjects();
+  };
+
+  const openAddProject = () => {
+    setProjectEditId(null);
+    setProjectForm({
+      title: "",
+      description: "",
+      github_url: "",
+      demo_url: "",
+      image_url: "",
+      status: "active",
+      tags: "",
+      isFeatured: false,
+    });
+    setProjectOpen(true);
+  };
+
+  const editProject = (p: Project) => {
+    setProjectEditId(p.id);
+    const tagArr = Array.isArray(p.tags) ? p.tags : [];
+    const isFeatured = tagArr.includes("featured");
+    const displayTags = tagArr.filter((t) => t !== "featured").join(", ");
+
+    setProjectForm({
+      title: p.title || "",
+      description: p.description || "",
+      github_url: p.github_url || "",
+      demo_url: p.demo_url || "",
+      image_url: p.image_url || "",
+      status: p.status || "active",
+      tags: displayTags,
+      isFeatured,
+    });
+    setProjectOpen(true);
+  };
+
+  const toggleFeaturedProject = async (p: Project) => {
+    const tagArr = Array.isArray(p.tags) ? [...p.tags] : [];
+    const isCurrentlyFeatured = tagArr.includes("featured");
+    let nextTags: string[];
+    if (isCurrentlyFeatured) {
+      nextTags = tagArr.filter((t) => t !== "featured");
+    } else {
+      nextTags = [...tagArr, "featured"];
+    }
+    await fetch(`/api/projects/${p.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tags: nextTags }),
+    });
+    fetchProjects();
+  };
+
+  const deleteProject = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa dự án này?")) return;
+    await fetch(`/api/projects/${id}`, { method: "DELETE" });
+    fetchProjects();
+  };
+
   const navTabs = [
     {
       key: "profile" as Tab,
-      label: "Profile",
+      label: "Hồ sơ",
       icon: <Camera className="w-4 h-4" />,
     },
     {
+      key: "projects" as Tab,
+      label: "Dự án",
+      icon: <FileCode className="w-4 h-4" />,
+    },
+    {
       key: "gears" as Tab,
-      label: "Gears",
+      label: "Thiết bị",
       icon: <Monitor className="w-4 h-4" />,
     },
     {
       key: "games" as Tab,
-      label: "Games",
+      label: "Trò chơi",
       icon: <Gamepad2 className="w-4 h-4" />,
     },
     {
       key: "social" as Tab,
-      label: "Social Links",
+      label: "Liên kết",
       icon: <LinkIcon className="w-4 h-4" />,
     },
   ];
@@ -848,8 +997,8 @@ export default function AdminPage() {
   // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#080d14] text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className={`${styles.admin} ${styles.loading}`} role="status">
+        Đang tải trang quản trị…
       </div>
     );
   }
@@ -857,33 +1006,41 @@ export default function AdminPage() {
   // Show login form if not authenticated
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-[#080d14] text-white flex items-center justify-center px-4">
-        <div className="max-w-md w-full">
-          <div className="bg-[#0d1825] border border-white/10 rounded-xl p-8">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold mb-2">Admin Login</h1>
-              <p className="text-slate-400 text-sm">
-                Enter password to access admin panel
-              </p>
+      <div className={styles.admin}>
+        <div className={styles.frame}>
+          <header className={styles.topbar}>
+            <a href="/" className={styles.brand}>silentboiz<span>.</span></a>
+            <div className={styles.topActions}><a href="/" className={styles.backLink}>Về trang giới thiệu ↗</a><ThemeToggle /></div>
+          </header>
+          <main className={styles.login}>
+          <div className={styles.loginCard}>
+            <div>
+              <h1>Đăng nhập quản trị.</h1>
+              <p>Chăm chút hồ sơ, cập nhật dự án và lưu lại những trải nghiệm mới.</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label className="text-slate-400 text-xs uppercase tracking-wider">
-                  Password
+                <Label className={styles.label} htmlFor="admin-password">
+                  Mật khẩu
                 </Label>
                 <Input
                   type="password"
+                  id="admin-password"
+                  autoComplete="current-password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
-                  className="bg-[#0a1220] border-white/10 focus:border-blue-500/50 text-white mt-2"
+                  placeholder="Nhập mật khẩu quản trị"
+                  className={styles.input}
+                  aria-invalid={error}
+                  aria-describedby={error ? "login-error" : undefined}
                   autoFocus
                   disabled={loggingIn}
                 />
                 {error && (
-                  <p className="text-red-400 text-sm mt-2">
-                    ❌ Incorrect password
+                  <p id="login-error" role="alert" className="text-sm mt-2">
+                    Chưa đăng nhập được. Kiểm tra mật khẩu rồi thử lại nhé.
                   </p>
                 )}
               </div>
@@ -891,65 +1048,66 @@ export default function AdminPage() {
               <Button
                 type="submit"
                 disabled={loggingIn}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                className={styles.primary}
               >
-                {loggingIn ? "Logging in..." : "Login"}
+                {loggingIn ? "Đang đăng nhập…" : "Đăng nhập"}
               </Button>
             </form>
 
-            <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <p className="text-blue-400 text-xs">
-                🔒 Password is checked server-side for security
-              </p>
-            </div>
           </div>
+          </main>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#080d14] text-white">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+    <div className={styles.admin}>
+      <div className={styles.frame}>
+        <header className={styles.topbar}>
+          <a href="/" className={styles.brand}>silentboiz<span>.</span></a>
+          <div className={styles.topActions}>
+          <a href="/" className={styles.backLink}>Xem trang giới thiệu ↗</a>
+          <ThemeToggle />
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="text-slate-400 hover:text-white"
+            className={styles.secondary}
           >
-            Logout
+            Đăng xuất
           </Button>
+          </div>
+        </header>
+        <main>
+        <div className={styles.heading}>
+          <h1>Quản lý nội dung.</h1>
+          <p>Hồ sơ, những dự án đang làm và góc trải nghiệm của Minh.</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10 mb-8">
+        <nav className={styles.tabs} aria-label="Các mục quản lý">
           {navTabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-all ${
-                tab === t.key
-                  ? "border-blue-400 text-blue-400"
-                  : "border-transparent text-slate-500 hover:text-slate-300"
-              }`}
+              aria-pressed={tab === t.key}
             >
               {t.icon}
               {t.label}
             </button>
           ))}
-        </div>
+        </nav>
 
         {/* ── PROFILE ── */}
         {tab === "profile" && (
-          <div className="space-y-6 max-w-2xl">
+          <div className={`${styles.profileForm} space-y-6`}>
             {/* Cover with crop */}
             <div className="space-y-2">
-              <Label className="text-slate-400 text-xs uppercase tracking-wider">
-                Cover Image / GIF
+              <Label className="text-[var(--secondary)] text-sm">
+                Ảnh bìa
               </Label>
               <div
-                className="relative cursor-pointer group border-2 border-dashed border-white/10 rounded-xl overflow-hidden hover:border-blue-500/40 transition-all"
+                className="relative cursor-pointer group border-2 border-dashed border-[var(--line)] rounded-xl overflow-hidden hover:border-[var(--highlight)] transition-colors"
                 style={{ height: 160 }}
                 onClick={() => document.getElementById("cover-input")?.click()}
               >
@@ -960,13 +1118,13 @@ export default function AdminPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-600">
+                  <div className="flex flex-col items-center justify-center h-full gap-2 text-[var(--secondary)]">
                     <Upload className="w-6 h-6" />
-                    <span className="text-xs">Click để chọn ảnh cover</span>
+                    <span className="text-xs">Nhấn để chọn ảnh bìa</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 text-white text-sm font-medium">
-                  <Upload className="w-4 h-4" /> Đổi cover
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-colors flex items-center justify-center gap-2 text-white text-sm font-medium">
+                  <Upload className="w-4 h-4" /> Đổi ảnh bìa
                 </div>
               </div>
               <input
@@ -989,9 +1147,8 @@ export default function AdminPage() {
                   e.target.value = "";
                 }}
               />
-              <p className="text-xs text-slate-600">
-                Sau khi chọn ảnh, bạn có thể crop vùng hiển thị. GIF sẽ được
-                upload thẳng (không crop)
+              <p className="text-xs text-[var(--secondary)]">
+                Có thể cắt vùng hiển thị sau khi chọn ảnh. Ảnh GIF được tải lên nguyên bản.
               </p>
             </div>
 
@@ -1017,11 +1174,11 @@ export default function AdminPage() {
 
             <div className="flex items-end gap-6">
               <div className="shrink-0">
-                <Label className="text-slate-400 text-xs uppercase tracking-wider block mb-2">
-                  Avatar
+                <Label className="text-[var(--secondary)] text-sm block mb-2">
+                  Ảnh đại diện
                 </Label>
                 <div className="relative w-20 h-20">
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-cyan-700 flex items-center justify-center text-2xl font-bold border-2 border-white/10">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-[var(--panel)] flex items-center justify-center text-2xl font-bold border-2 border-[var(--line)]">
                     {profile.avatar_url ? (
                       <img
                         src={profile.avatar_url}
@@ -1032,7 +1189,7 @@ export default function AdminPage() {
                       (profile.username?.[0] || "S").toUpperCase()
                     )}
                   </div>
-                  <label className="absolute inset-0 rounded-full cursor-pointer flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-all">
+                  <label className="absolute inset-0 rounded-full cursor-pointer flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-colors">
                     <Upload className="w-5 h-5 text-white" />
                     <input
                       type="file"
@@ -1048,12 +1205,12 @@ export default function AdminPage() {
                   </label>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 pb-2">
+              <p className="text-xs text-[var(--secondary)] pb-2">
                 Hỗ trợ JPG, PNG, GIF động
               </p>
             </div>
 
-            <Field label="Username">
+            <Field label="Tên hiển thị">
               <SI
                 placeholder="silentboiz"
                 value={profile.username}
@@ -1063,7 +1220,7 @@ export default function AdminPage() {
               />
             </Field>
 
-            <Field label="Bio / Mô tả">
+            <Field label="Giới thiệu">
               <textarea
                 rows={3}
                 placeholder="Giới thiệu bản thân..."
@@ -1071,73 +1228,414 @@ export default function AdminPage() {
                 onChange={(e) =>
                   setProfile({ ...profile, bio: e.target.value })
                 }
-                className="w-full bg-[#0a1220] border border-white/10 rounded-md px-3 py-2 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 resize-none"
+                className={styles.textarea}
               />
             </Field>
 
             <Button
               onClick={saveProfile}
               disabled={profileSaving}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6"
+              className={`${styles.primary} px-6`}
             >
               <Save className="w-4 h-4 mr-2" />
               {profileSaving
                 ? "Đang lưu..."
                 : profileSaved
-                  ? "✓ Đã lưu"
-                  : "Lưu Profile"}
+                  ? "Đã lưu"
+                  : "Lưu hồ sơ"}
             </Button>
           </div>
+        )}
+
+        {/* ── PROJECTS ── */}
+        {tab === "projects" && (
+          <>
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Dự án cá nhân{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
+                  ({projects.length})
+                </span>
+              </h2>
+              <Button
+                onClick={openAddProject}
+                className={styles.primary}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Thêm dự án
+              </Button>
+            </div>
+
+            <div className={styles.tablePanel}>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    <TableHead className="text-[var(--secondary)] font-medium w-16">
+                      Ảnh
+                    </TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Tên dự án & Mô tả
+                    </TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Công nghệ (Tags)
+                    </TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Trạng thái
+                    </TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium text-center">
+                      Nổi bật ⭐
+                    </TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projectsLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-[var(--secondary)] py-10"
+                      >
+                        Đang tải danh sách dự án...
+                      </TableCell>
+                    </TableRow>
+                  ) : projects.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
+                          <FileCode className="w-8 h-8" />
+                          <p className="text-sm">
+                            Chưa có dự án nào. Nhấn "Thêm Dự án" để tạo mới.
+                          </p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    projects.map((p) => {
+                      const tagsList = Array.isArray(p.tags) ? p.tags : [];
+                      const isFeatured = tagsList.includes("featured");
+                      const displayTags = tagsList.filter(
+                        (t) => t !== "featured"
+                      );
+
+                      return (
+                        <TableRow
+                          key={p.id}
+                          className="border-[var(--line)] hover:bg-[var(--panel)]"
+                        >
+                          <TableCell>
+                            <div className="w-12 h-10 rounded bg-[var(--panel)] overflow-hidden flex items-center justify-center">
+                              {p.image_url ? (
+                                <img
+                                  src={p.image_url}
+                                  alt={p.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <FileCode className="w-5 h-5 text-[var(--secondary)]" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <p className="font-semibold text-[var(--ink)] text-sm">
+                              {p.title}
+                            </p>
+                            {p.description && (
+                              <p className="text-xs text-[var(--secondary)] line-clamp-1 mt-0.5">
+                                {p.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 mt-1 text-xs">
+                              {p.github_url && (
+                                <a
+                                  href={p.github_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[var(--highlight)] hover:underline"
+                                >
+                                  GitHub ↗
+                                </a>
+                              )}
+                              {p.demo_url && (
+                                <a
+                                  href={p.demo_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[var(--highlight)] hover:underline"
+                                >
+                                  Demo ↗
+                                </a>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {displayTags.map((tag, idx) => (
+                                <Badge
+                                  key={idx}
+                                  variant="secondary"
+                                  className="bg-[var(--panel)] text-[var(--ink)] text-xs px-1.5 py-0.5"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                p.status === "completed"
+                                  ? "bg-[var(--panel)] text-[var(--highlight)]"
+                                  : "bg-[var(--panel)] text-[var(--highlight)]"
+                              }`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  p.status === "completed"
+                                    ? "bg-[var(--highlight)]"
+                                    : "bg-[var(--highlight)]"
+                                }`}
+                              />
+                              {p.status === "completed"
+                                ? "Hoàn thành"
+                                : "Đang phát triển"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleFeaturedProject(p)}
+                              title={
+                                isFeatured
+                                  ? "Bỏ đánh dấu nổi bật"
+                                  : "Đặt làm dự án nổi bật trang chủ"
+                              }
+                              className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${
+                                isFeatured
+                                  ? "bg-[var(--panel)] border-[var(--line)] text-[var(--highlight)]"
+                                  : "border-[var(--line)] text-[var(--secondary)] hover:text-[var(--ink)] hover:border-[var(--line)]"
+                              }`}
+                            >
+                              {isFeatured ? "Nổi bật" : "Thường"}
+                            </button>
+                          </TableCell>
+                          <TableCell className="text-right space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => editProject(p)}
+                              aria-label="Chỉnh sửa"
+                              className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteProject(p.id)}
+                              aria-label="Xóa"
+                              className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Modal Thêm/Sửa Dự án */}
+            <Dialog open={projectOpen} onOpenChange={setProjectOpen} className={styles.dialogShell}>
+              <DialogContent className={styles.dialog} data-admin-dialog>
+                <DialogHeader>
+                  <DialogTitle className="text-[var(--ink)]">
+                    {projectEditId ? "Sửa thông tin dự án" : "Thêm dự án mới"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleProjectSubmit} className="space-y-4 pt-1">
+                  <Field label="Tên dự án *">
+                    <SI
+                      placeholder="vd: High-Performance Cache Service"
+                      value={projectForm.title}
+                      onChange={(e) =>
+                        setProjectForm({
+                          ...projectForm,
+                          title: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </Field>
+                  <Field label="Mô tả tóm tắt">
+                    <textarea
+                      rows={3}
+                      placeholder="Mô tả chức năng, kiến trúc hoặc giải pháp kỹ thuật..."
+                      value={projectForm.description}
+                      onChange={(e) =>
+                        setProjectForm({
+                          ...projectForm,
+                          description: e.target.value,
+                        })
+                      }
+                      className={styles.textarea}
+                    />
+                  </Field>
+                  <div className={styles.fieldGrid}>
+                    <Field label="Đường dẫn GitHub">
+                      <SI
+                        placeholder="https://github.com/..."
+                        value={projectForm.github_url}
+                        onChange={(e) =>
+                          setProjectForm({
+                            ...projectForm,
+                            github_url: e.target.value,
+                          })
+                        }
+                      />
+                    </Field>
+                    <Field label="Đường dẫn trải nghiệm">
+                      <SI
+                        placeholder="https://..."
+                        value={projectForm.demo_url}
+                        onChange={(e) =>
+                          setProjectForm({
+                            ...projectForm,
+                            demo_url: e.target.value,
+                          })
+                        }
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Công nghệ sử dụng">
+                    <SI
+                      placeholder="vd: Go, Redis, Docker, PostgreSQL (ngăn cách bởi dấu phẩy)"
+                      value={projectForm.tags}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, tags: e.target.value })
+                      }
+                    />
+                    <p className="text-xs text-[var(--secondary)] mt-1">
+                      Ngăn cách tên các công nghệ bằng dấu phẩy.
+                    </p>
+                  </Field>
+                  <div className={styles.fieldGrid}>
+                    <Field label="Trạng thái">
+                      <SS
+                        value={projectForm.status}
+                        onChange={(v) =>
+                          setProjectForm({
+                            ...projectForm,
+                            status: v as "active" | "completed",
+                          })
+                        }
+                      >
+                        <option value="active">Đang phát triển (Active)</option>
+                        <option value="completed">
+                          Đã hoàn thành (Completed)
+                        </option>
+                      </SS>
+                    </Field>
+                    <Field label="Dự án nổi bật">
+                      <div className="flex items-center h-9 mt-1">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-[var(--ink)]">
+                          <input
+                            type="checkbox"
+                            checked={projectForm.isFeatured}
+                            onChange={(e) =>
+                              setProjectForm({
+                                ...projectForm,
+                                isFeatured: e.target.checked,
+                              })
+                            }
+                            className="w-4 h-4 rounded border-[var(--line)] bg-[var(--field)] accent-[var(--highlight)] focus:ring-0"
+                          />
+                          <span>Đặt làm nổi bật</span>
+                        </label>
+                      </div>
+                    </Field>
+                  </div>
+                  <Field label="Ảnh dự án">
+                    <InlineImageUpload
+                      value={projectForm.image_url}
+                      bucket="covers"
+                      onChange={(url) =>
+                        setProjectForm({ ...projectForm, image_url: url })
+                      }
+                    />
+                  </Field>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setProjectOpen(false)}
+                      className="text-[var(--secondary)]"
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      type="submit"
+                      className={styles.primary}
+                    >
+                      {projectEditId ? "Cập nhật" : "Tạo dự án"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
 
         {/* ── GEARS ── */}
         {tab === "gears" && (
           <>
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-semibold text-white">
-                Gears{" "}
-                <span className="text-slate-500 text-sm font-normal">
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Thiết bị{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
                   ({gears.length})
                 </span>
               </h2>
               <Button
                 onClick={openAddGear}
-                className="bg-blue-600 hover:bg-blue-500 text-white"
+                className={styles.primary}
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Gear
+                <Plus className="mr-2 h-4 w-4" /> Thêm thiết bị
               </Button>
             </div>
 
-            <div className="rounded-xl border border-white/8 overflow-hidden bg-[#0a1220]">
+            <div className={styles.tablePanel}>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/8 hover:bg-transparent">
-                    <TableHead className="text-slate-500 font-medium">
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    <TableHead className="text-[var(--secondary)] font-medium">
                       <button
                         onClick={() => handleGearSort("name")}
-                        className="flex items-center hover:text-slate-300 transition-colors"
+                        className="flex items-center hover:text-[var(--ink)] transition-colors"
                       >
-                        Name
+                        Tên
                         {getSortIcon("name", gearSortField, gearSortDirection)}
                       </button>
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
+                    <TableHead className="text-[var(--secondary)] font-medium">
                       <button
                         onClick={() => handleGearSort("brand")}
-                        className="flex items-center hover:text-slate-300 transition-colors"
+                        className="flex items-center hover:text-[var(--ink)] transition-colors"
                       >
-                        Brand
+                        Thương hiệu
                         {getSortIcon("brand", gearSortField, gearSortDirection)}
                       </button>
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
-                      Category
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Loại
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
-                      Status
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Trạng thái
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium text-right">
-                      Actions
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1146,18 +1644,18 @@ export default function AdminPage() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="text-center text-slate-500 py-10"
+                        className="text-center text-[var(--secondary)] py-10"
                       >
-                        Loading...
+                        Đang tải…
                       </TableCell>
                     </TableRow>
                   ) : gears.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="py-12">
-                        <div className="flex flex-col items-center gap-3 text-slate-600">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <Monitor className="w-8 h-8" />
                           <p className="text-sm">
-                            Chưa có gear nào. Nhấn "Add Gear" để thêm.
+                            Chưa có thiết bị nào. Nhấn "Thêm thiết bị" để thêm.
                           </p>
                         </div>
                       </TableCell>
@@ -1166,26 +1664,26 @@ export default function AdminPage() {
                     getSortedGears().map((g) => (
                       <TableRow
                         key={g.id}
-                        className="border-white/5 hover:bg-white/3"
+                        className="border-[var(--line)] hover:bg-[var(--panel)]"
                       >
-                        <TableCell className="font-medium text-white">
+                        <TableCell className="font-medium text-[var(--ink)]">
                           {g.name}
                         </TableCell>
-                        <TableCell className="text-slate-400">
+                        <TableCell className="text-[var(--secondary)]">
                           {g.brand || "—"}
                         </TableCell>
-                        <TableCell className="text-slate-400">
+                        <TableCell className="text-[var(--secondary)]">
                           {g.category || "—"}
                         </TableCell>
                         <TableCell>
                           <Badge
                             className={
                               g.status === "active"
-                                ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
-                                : "bg-slate-700/50 text-slate-400 border border-white/10"
+                                ? "bg-[var(--panel)] text-[var(--highlight)] border border-[var(--line)]"
+                                : "bg-[var(--panel)] text-[var(--secondary)] border border-[var(--line)]"
                             }
                           >
-                            {g.status}
+                            {g.status === "active" ? "Đang dùng" : g.status === "retired" ? "Đã trải nghiệm" : "Chưa cập nhật"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-1">
@@ -1193,7 +1691,8 @@ export default function AdminPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => editGear(g)}
-                            className="h-8 w-8 hover:text-blue-400 hover:bg-blue-500/10"
+                              aria-label="Chỉnh sửa"
+                            className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
                           >
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
@@ -1201,7 +1700,8 @@ export default function AdminPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteGear(g.id)}
-                            className="h-8 w-8 hover:text-red-400 hover:bg-red-500/10"
+                              aria-label="Xóa"
+                            className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -1213,15 +1713,15 @@ export default function AdminPage() {
               </Table>
             </div>
 
-            <Dialog open={gearOpen} onOpenChange={setGearOpen}>
-              <DialogContent className="bg-[#0d1825] border-white/10 text-white">
+            <Dialog open={gearOpen} onOpenChange={setGearOpen} className={styles.dialogShell}>
+              <DialogContent className={styles.dialog} data-admin-dialog>
                 <DialogHeader>
-                  <DialogTitle className="text-white">
-                    {gearEditId ? "Edit Gear" : "Add Gear"}
+                  <DialogTitle className="text-[var(--ink)]">
+                    {gearEditId ? "Sửa thiết bị" : "Thêm thiết bị"}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleGearSubmit} className="space-y-4 pt-1">
-                  <Field label="Name">
+                  <Field label="Tên thiết bị">
                     <SI
                       value={gearForm.name}
                       onChange={(e) =>
@@ -1230,7 +1730,7 @@ export default function AdminPage() {
                       required
                     />
                   </Field>
-                  <Field label="Brand">
+                  <Field label="Thương hiệu">
                     <SI
                       value={gearForm.brand}
                       onChange={(e) =>
@@ -1238,7 +1738,7 @@ export default function AdminPage() {
                       }
                     />
                   </Field>
-                  <Field label="Category">
+                  <Field label="Loại thiết bị">
                     <SI
                       placeholder="mouse, keyboard, monitor, headset, cpu, gpu..."
                       value={gearForm.category}
@@ -1256,15 +1756,15 @@ export default function AdminPage() {
                       }
                     />
                   </Field>
-                  <Field label="Status">
+                  <Field label="Trạng thái">
                     <SS
                       value={gearForm.status}
                       onChange={(v) =>
                         setGearForm({ ...gearForm, status: v as any })
                       }
                     >
-                      <option value="active">Active</option>
-                      <option value="retired">Retired</option>
+                      <option value="active">Đang dùng</option>
+                      <option value="retired">Đã trải nghiệm</option>
                     </SS>
                   </Field>
                   <DialogFooter>
@@ -1272,15 +1772,15 @@ export default function AdminPage() {
                       type="button"
                       variant="ghost"
                       onClick={() => setGearOpen(false)}
-                      className="text-slate-400"
+                      className="text-[var(--secondary)]"
                     >
-                      Cancel
+                      Hủy
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-500"
+                      className={styles.primary}
                     >
-                      {gearEditId ? "Update" : "Create"}
+                      {gearEditId ? "Cập nhật" : "Tạo mới"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -1292,40 +1792,40 @@ export default function AdminPage() {
         {/* ── GAMES ── */}
         {tab === "games" && (
           <>
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-semibold text-white">
-                Games{" "}
-                <span className="text-slate-500 text-sm font-normal">
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Trò chơi{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
                   ({games.length})
                 </span>
               </h2>
               <Button
                 onClick={openAddGame}
-                className="bg-blue-600 hover:bg-blue-500 text-white"
+                className={styles.primary}
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Game
+                <Plus className="mr-2 h-4 w-4" /> Thêm trò chơi
               </Button>
             </div>
 
-            <div className="rounded-xl border border-white/8 overflow-hidden bg-[#0a1220]">
+            <div className={styles.tablePanel}>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/8 hover:bg-transparent">
-                    <TableHead className="text-slate-500 font-medium">
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    <TableHead className="text-[var(--secondary)] font-medium">
                       <button
                         onClick={() => handleGameSort("title")}
-                        className="flex items-center hover:text-slate-300 transition-colors"
+                        className="flex items-center hover:text-[var(--ink)] transition-colors"
                       >
-                        Title
+                        Tên trò chơi
                         {getSortIcon("title", gameSortField, gameSortDirection)}
                       </button>
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
+                    <TableHead className="text-[var(--secondary)] font-medium">
                       <button
                         onClick={() => handleGameSort("publisher")}
-                        className="flex items-center hover:text-slate-300 transition-colors"
+                        className="flex items-center hover:text-[var(--ink)] transition-colors"
                       >
-                        Publisher
+                        Nhà phát hành
                         {getSortIcon(
                           "publisher",
                           gameSortField,
@@ -1333,14 +1833,14 @@ export default function AdminPage() {
                         )}
                       </button>
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
+                    <TableHead className="text-[var(--secondary)] font-medium">
                       Profile Link
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
-                      Status
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Trạng thái
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium text-right">
-                      Actions
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1349,18 +1849,18 @@ export default function AdminPage() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="text-center text-slate-500 py-10"
+                        className="text-center text-[var(--secondary)] py-10"
                       >
-                        Loading...
+                        Đang tải…
                       </TableCell>
                     </TableRow>
                   ) : games.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="py-12">
-                        <div className="flex flex-col items-center gap-3 text-slate-600">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <Gamepad2 className="w-8 h-8" />
                           <p className="text-sm">
-                            Chưa có game nào. Nhấn "Add Game" để thêm.
+                            Chưa có trò chơi nào. Nhấn "Thêm trò chơi" để thêm.
                           </p>
                         </div>
                       </TableCell>
@@ -1369,21 +1869,21 @@ export default function AdminPage() {
                     getSortedGames().map((g) => (
                       <TableRow
                         key={g.id}
-                        className="border-white/5 hover:bg-white/3"
+                        className="border-[var(--line)] hover:bg-[var(--panel)]"
                       >
-                        <TableCell className="font-medium text-white">
+                        <TableCell className="font-medium text-[var(--ink)]">
                           {g.title}
                         </TableCell>
-                        <TableCell className="text-slate-400">
+                        <TableCell className="text-[var(--secondary)]">
                           {g.publisher || "—"}
                         </TableCell>
-                        <TableCell className="text-slate-400 max-w-[160px] truncate">
+                        <TableCell className="text-[var(--secondary)] max-w-[160px] truncate">
                           {g.profile_url ? (
                             <a
                               href={g.profile_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-400 hover:underline truncate block"
+                              className="text-[var(--highlight)] hover:underline truncate block"
                             >
                               {g.profile_url}
                             </a>
@@ -1395,12 +1895,12 @@ export default function AdminPage() {
                           <Badge
                             className={
                               g.status === "online"
-                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
-                                : "bg-slate-700/50 text-slate-400 border border-white/10"
+                                ? "bg-emerald-500/15 text-[var(--highlight)] border border-emerald-500/25"
+                                : "bg-[var(--panel)] text-[var(--secondary)] border border-[var(--line)]"
                             }
                           >
                             <span
-                              className={`w-1.5 h-1.5 rounded-full mr-1.5 inline-block ${g.status === "online" ? "bg-emerald-400" : "bg-slate-500"}`}
+                              className={`w-1.5 h-1.5 rounded-full mr-1.5 inline-block ${g.status === "online" ? "bg-[var(--highlight)]" : "bg-[var(--secondary)]"}`}
                             />
                             {GAME_STATUS_LABELS[g.status || ""] || g.status}
                           </Badge>
@@ -1410,7 +1910,8 @@ export default function AdminPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => editGame(g)}
-                            className="h-8 w-8 hover:text-blue-400 hover:bg-blue-500/10"
+                              aria-label="Chỉnh sửa"
+                            className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
                           >
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
@@ -1418,7 +1919,8 @@ export default function AdminPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteGame(g.id)}
-                            className="h-8 w-8 hover:text-red-400 hover:bg-red-500/10"
+                              aria-label="Xóa"
+                            className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -1430,16 +1932,16 @@ export default function AdminPage() {
               </Table>
             </div>
 
-            <Dialog open={gameOpen} onOpenChange={setGameOpen}>
-              <DialogContent className="bg-[#0d1825] border-white/10 text-white max-h-[90vh] overflow-y-auto">
+            <Dialog open={gameOpen} onOpenChange={setGameOpen} className={styles.dialogShell}>
+              <DialogContent className={styles.dialog} data-admin-dialog>
                 <DialogHeader>
-                  <DialogTitle className="text-white">
-                    {gameEditId ? "Edit Game" : "Add Game"}
+                  <DialogTitle className="text-[var(--ink)]">
+                    {gameEditId ? "Sửa trò chơi" : "Thêm trò chơi"}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleGameSubmit} className="space-y-4 pt-1">
                   {/* ── PLATFORM (luôn hiển thị đầu tiên) ── */}
-                  <Field label="Platform">
+                  <Field label="Nền tảng">
                     <SS
                       value={gameForm.platform}
                       onChange={(v) => {
@@ -1512,14 +2014,14 @@ export default function AdminPage() {
                               !gameForm.steamSearchLoading &&
                               gameForm.steamSearchResults.length === 0 &&
                               !gameForm.steamSearchError)) && (
-                            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#0a1220] border border-white/10 rounded-lg overflow-hidden shadow-xl max-h-60 overflow-y-auto">
+                            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[var(--field)] border border-[var(--line)] rounded-lg overflow-hidden shadow-xl max-h-60 overflow-y-auto">
                               {gameForm.steamSearchLoading && (
-                                <div className="px-3 py-2 text-xs text-slate-500">
+                                <div className="px-3 py-2 text-xs text-[var(--secondary)]">
                                   Đang tìm...
                                 </div>
                               )}
                               {gameForm.steamSearchError && (
-                                <div className="px-3 py-2 text-xs text-red-400">
+                                <div className="px-3 py-2 text-xs text-[var(--danger)]">
                                   {gameForm.steamSearchError}
                                 </div>
                               )}
@@ -1527,7 +2029,7 @@ export default function AdminPage() {
                                 !gameForm.steamSearchError &&
                                 gameForm.steamSearchResults.length === 0 &&
                                 gameForm.steamSearchQuery.length >= 2 && (
-                                  <div className="px-3 py-2 text-xs text-slate-500">
+                                  <div className="px-3 py-2 text-xs text-[var(--secondary)]">
                                     Không tìm thấy game nào
                                   </div>
                                 )}
@@ -1547,7 +2049,7 @@ export default function AdminPage() {
                                       steamSearchError: null,
                                     }));
                                   }}
-                                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 text-left transition-colors"
+                                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[var(--panel)] text-left transition-colors"
                                 >
                                   <img
                                     src={`https://cdn.akamai.steamstatic.com/steam/apps/${r.appid}/capsule_sm_120.jpg`}
@@ -1559,7 +2061,7 @@ export default function AdminPage() {
                                       ).style.display = "none";
                                     }}
                                   />
-                                  <span className="text-sm text-white truncate">
+                                  <span className="text-sm text-[var(--ink)] truncate">
                                     {r.name}
                                   </span>
                                 </button>
@@ -1571,17 +2073,17 @@ export default function AdminPage() {
 
                       {/* Preview sau khi chọn */}
                       {gameForm.steam_appid && (
-                        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-3 p-3 bg-[var(--panel)] rounded-lg border border-[var(--line)]">
                           <img
                             src={`https://cdn.akamai.steamstatic.com/steam/apps/${gameForm.steam_appid}/header.jpg`}
                             alt={gameForm.title}
                             className="w-24 h-14 object-cover rounded shrink-0"
                           />
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">
+                            <p className="text-sm font-semibold text-[var(--ink)] truncate">
                               {gameForm.title}
                             </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-[var(--secondary)] mt-0.5">
                               App ID: {gameForm.steam_appid}
                             </p>
                           </div>
@@ -1599,7 +2101,7 @@ export default function AdminPage() {
                             }))
                           }
                         />
-                        <p className="text-xs text-slate-600 mt-1">
+                        <p className="text-xs text-[var(--secondary)] mt-1">
                           Nhập Steam ID 64-bit hoặc URL profile
                           (steamcommunity.com/profiles/...)
                         </p>
@@ -1616,7 +2118,7 @@ export default function AdminPage() {
                             })
                           }
                         />
-                        <p className="text-xs text-slate-600 mt-1">
+                        <p className="text-xs text-[var(--secondary)] mt-1">
                           Tự động điền "Steam", có thể chỉnh sửa
                         </p>
                       </Field>
@@ -1754,7 +2256,7 @@ export default function AdminPage() {
                               )}
                             </SS>
                           </Field>
-                          <p className="text-xs text-slate-600">
+                          <p className="text-xs text-[var(--secondary)]">
                             Cần set{" "}
                             <code className="bg-black/30 px-1 rounded">
                               HOYOLAB_LTOKEN
@@ -1779,7 +2281,7 @@ export default function AdminPage() {
                             })
                           }
                         />
-                        <p className="text-xs text-slate-600 mt-1">
+                        <p className="text-xs text-[var(--secondary)] mt-1">
                           Tự động điền "HoYoverse", có thể chỉnh sửa
                         </p>
                       </Field>
@@ -1789,7 +2291,7 @@ export default function AdminPage() {
                   {/* ── MANUAL FIELDS (chỉ hiện khi không có platform) ── */}
                   {gameForm.platform === "none" && (
                     <>
-                      <Field label="Title">
+                      <Field label="Tên trò chơi">
                         <SI
                           value={gameForm.title}
                           onChange={(e) =>
@@ -1836,9 +2338,9 @@ export default function AdminPage() {
 
                   {/* ── RAWG IMAGE PICKER (hiển thị cho tất cả platforms) ── */}
                   {gameForm.title && (
-                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                      <p className="text-sm font-semibold text-white mb-3">
-                        🎮 Chọn ảnh từ RAWG Database:
+                    <div className="p-4 bg-[var(--panel)] rounded-lg border border-[var(--line)]">
+                      <p className="text-sm font-semibold text-[var(--ink)] mb-3">
+                        Chọn ảnh từ thư viện RAWG
                       </p>
                       <RAWGImagePicker
                         gameName={gameForm.title}
@@ -1850,7 +2352,7 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  <Field label="Status">
+                  <Field label="Trạng thái">
                     <SS
                       value={gameForm.status || "online"}
                       onChange={(v) =>
@@ -1870,15 +2372,15 @@ export default function AdminPage() {
                       type="button"
                       variant="ghost"
                       onClick={() => setGameOpen(false)}
-                      className="text-slate-400"
+                      className="text-[var(--secondary)]"
                     >
-                      Cancel
+                      Hủy
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-500"
+                      className={styles.primary}
                     >
-                      {gameEditId ? "Update" : "Create"}
+                      {gameEditId ? "Cập nhật" : "Tạo mới"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -1890,33 +2392,33 @@ export default function AdminPage() {
         {/* ── SOCIAL ── */}
         {tab === "social" && (
           <>
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-semibold text-white">
-                Social Links{" "}
-                <span className="text-slate-500 text-sm font-normal">
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Liên kết{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
                   ({socials.length})
                 </span>
               </h2>
               <Button
                 onClick={openAddSocial}
-                className="bg-blue-600 hover:bg-blue-500 text-white"
+                className={styles.primary}
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Link
+                <Plus className="mr-2 h-4 w-4" /> Thêm liên kết
               </Button>
             </div>
 
-            <div className="rounded-xl border border-white/8 overflow-hidden bg-[#0a1220]">
+            <div className={styles.tablePanel}>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/8 hover:bg-transparent">
-                    <TableHead className="text-slate-500 font-medium">
-                      Platform
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    <TableHead className="text-[var(--secondary)] font-medium">
+                      Nền tảng
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium">
+                    <TableHead className="text-[var(--secondary)] font-medium">
                       URL
                     </TableHead>
-                    <TableHead className="text-slate-500 font-medium text-right">
-                      Actions
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1925,18 +2427,18 @@ export default function AdminPage() {
                     <TableRow>
                       <TableCell
                         colSpan={4}
-                        className="text-center text-slate-500 py-10"
+                        className="text-center text-[var(--secondary)] py-10"
                       >
-                        Loading...
+                        Đang tải…
                       </TableCell>
                     </TableRow>
                   ) : socials.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="py-12">
-                        <div className="flex flex-col items-center gap-3 text-slate-600">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <LinkIcon className="w-8 h-8" />
                           <p className="text-sm">
-                            Chưa có link nào. Nhấn "Add Link" để thêm.
+                            Chưa có liên kết nào. Nhấn "Thêm liên kết" để thêm.
                           </p>
                         </div>
                       </TableCell>
@@ -1945,20 +2447,20 @@ export default function AdminPage() {
                     socials.map((s) => (
                       <TableRow
                         key={s.id}
-                        className="border-white/5 hover:bg-white/3"
+                        className="border-[var(--line)] hover:bg-[var(--panel)]"
                       >
                         {" "}
-                        <TableCell className="font-medium text-white">
+                        <TableCell className="font-medium text-[var(--ink)]">
                           <div className="flex items-center gap-2">
                             <SocialIcon
                               platform={s.platform}
                               size={16}
-                              className="text-slate-400 shrink-0"
+                              className="text-[var(--secondary)] shrink-0"
                             />
                             {s.platform}
                           </div>
                         </TableCell>
-                        <TableCell className="text-slate-400 max-w-xs truncate">
+                        <TableCell className="text-[var(--secondary)] max-w-xs truncate">
                           {s.url}
                         </TableCell>
                         <TableCell className="text-right space-x-1">
@@ -1966,7 +2468,8 @@ export default function AdminPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => editSocial(s)}
-                            className="h-8 w-8 hover:text-blue-400 hover:bg-blue-500/10"
+                              aria-label="Chỉnh sửa"
+                            className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
                           >
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
@@ -1974,7 +2477,8 @@ export default function AdminPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteSocial(s.id)}
-                            className="h-8 w-8 hover:text-red-400 hover:bg-red-500/10"
+                              aria-label="Xóa"
+                            className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -1986,15 +2490,15 @@ export default function AdminPage() {
               </Table>
             </div>
 
-            <Dialog open={socialOpen} onOpenChange={setSocialOpen}>
-              <DialogContent className="bg-[#0d1825] border-white/10 text-white">
+            <Dialog open={socialOpen} onOpenChange={setSocialOpen} className={styles.dialogShell}>
+              <DialogContent className={styles.dialog} data-admin-dialog>
                 <DialogHeader>
-                  <DialogTitle className="text-white">
-                    {socialEditId ? "Edit Link" : "Add Social Link"}
+                  <DialogTitle className="text-[var(--ink)]">
+                    {socialEditId ? "Sửa liên kết" : "Thêm liên kết"}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSocialSubmit} className="space-y-4 pt-1">
-                  <Field label="Platform">
+                  <Field label="Nền tảng">
                     <SI
                       placeholder="Twitter, Twitch, YouTube, Discord..."
                       value={socialForm.platform}
@@ -2038,7 +2542,7 @@ export default function AdminPage() {
                       }}
                       required
                     />
-                    <p className="text-xs text-slate-600 mt-1">
+                    <p className="text-xs text-[var(--secondary)] mt-1">
                       Tên hiển thị sẽ tự động được trích xuất từ URL
                     </p>
                   </Field>
@@ -2047,15 +2551,15 @@ export default function AdminPage() {
                       type="button"
                       variant="ghost"
                       onClick={() => setSocialOpen(false)}
-                      className="text-slate-400"
+                      className="text-[var(--secondary)]"
                     >
-                      Cancel
+                      Hủy
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-500"
+                      className={styles.primary}
                     >
-                      {socialEditId ? "Update" : "Create"}
+                      {socialEditId ? "Cập nhật" : "Tạo mới"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -2063,6 +2567,7 @@ export default function AdminPage() {
             </Dialog>
           </>
         )}
+        </main>
       </div>
     </div>
   );

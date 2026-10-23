@@ -166,36 +166,52 @@ function GameActivity({ activity }: { activity: LanyardActivity }) {
 }
 
 export default function DiscordStatus({ discordId }: { discordId: string }) {
+  const isConfigured = Boolean(
+    discordId &&
+    discordId !== "your-discord-id-here" &&
+    discordId.trim().length > 5
+  );
+
   const [data, setData] = useState<LanyardData | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!discordId) return;
+    if (!isConfigured) return;
 
     const connect = () => {
-      const ws = new WebSocket("wss://api.lanyard.rest/socket");
-      wsRef.current = ws;
+      try {
+        const ws = new WebSocket("wss://api.lanyard.rest/socket");
+        wsRef.current = ws;
 
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.op === 1) {
-          heartbeatRef.current = setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ op: 3 }));
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.op === 1 && msg.d) {
+              heartbeatRef.current = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                  ws.send(JSON.stringify({ op: 3 }));
+                }
+              }, msg.d.heartbeat_interval || 30000);
+              ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: discordId } }));
             }
-          }, msg.d.heartbeat_interval);
-          ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: discordId } }));
-        }
-        if (msg.op === 0) setData(msg.d);
-      };
+            if (msg.op === 0 && msg.d && Array.isArray(msg.d.activities)) {
+              setData(msg.d);
+            }
+          } catch {
+            // Ignore parse errors from third-party socket
+          }
+        };
 
-      ws.onclose = () => {
-        if (heartbeatRef.current) clearInterval(heartbeatRef.current);
-        setTimeout(connect, 3000);
-      };
+        ws.onclose = () => {
+          if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+          setTimeout(connect, 5000);
+        };
 
-      ws.onerror = () => ws.close();
+        ws.onerror = () => ws.close();
+      } catch {
+        // Silently handle WebSocket creation errors
+      }
     };
 
     connect();
@@ -203,24 +219,26 @@ export default function DiscordStatus({ discordId }: { discordId: string }) {
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
       wsRef.current?.close();
     };
-  }, [discordId]);
+  }, [discordId, isConfigured]);
 
-  if (!data) return null;
+  if (!isConfigured || !data || !Array.isArray(data.activities)) return null;
 
-  const activity = data.activities.find((a) => a.type === 0);
-  const status = data.discord_status;
+  const activity = data.activities.find((a) => a && a.type === 0);
+  const status = data.discord_status || "offline";
+  const statusColor = STATUS_COLORS[status] || STATUS_COLORS.offline;
+  const statusLabel = STATUS_LABELS[status] || STATUS_LABELS.offline;
 
   return (
     <div className="mb-5 flex flex-col gap-2">
       {/* Discord Status dot */}
       <div className="flex items-center gap-2">
         <span
-          className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_COLORS[status]} ${status === "online" ? "animate-pulse" : ""}`}
+          className={`w-2.5 h-2.5 rounded-full shrink-0 ${statusColor} ${status === "online" ? "animate-pulse" : ""}`}
         />
         <span className="text-xs text-slate-400">
           Discord —{" "}
           <span className="text-slate-300 font-medium">
-            {STATUS_LABELS[status]}
+            {statusLabel}
           </span>
         </span>
       </div>

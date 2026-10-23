@@ -29,41 +29,47 @@ function relativeTime(unixTs: number): string {
 }
 
 export default function SteamStats({ appid, steamid }: Props) {
+  const isConfigured = Boolean(
+    appid &&
+    steamid &&
+    appid !== "your-steam-appid-here" &&
+    steamid !== "your-steam-id-here" &&
+    appid.trim() !== "" &&
+    steamid.trim() !== ""
+  );
+
   const [data, setData] = useState<SteamData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isConfigured);
 
   useEffect(() => {
-    fetch(`/api/steam?appid=${appid}&steamid=${steamid}`)
-      .then((r) => r.json())
+    if (!isConfigured) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(
+      `/api/steam?appid=${encodeURIComponent(appid)}&steamid=${encodeURIComponent(steamid)}`
+    )
+      .then(async (r) => {
+        if (!r.ok) return { enabled: false };
+        return r.json();
+      })
       .then((res) => {
-        if (res.enabled === false) {
+        if (!res || res.enabled === false || res.error) {
           setLoading(false);
           return;
         }
-        if (res.error) {
-          console.error("SteamStats error:", res.error);
-          setLoading(false);
-          return;
+        if (typeof res.hours_total === "number") {
+          setData(res as SteamData);
         }
-        setData(res as SteamData);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error("SteamStats fetch failed:", err);
+      .catch(() => {
         setLoading(false);
       });
-  }, [appid, steamid]);
+  }, [appid, steamid, isConfigured]);
 
-  if (loading) {
-    return (
-      <div className="mt-3 flex items-center gap-2 text-xs text-slate-600">
-        <div className="w-3 h-3 border border-slate-600 border-t-transparent rounded-full animate-spin" />
-        Loading stats...
-      </div>
-    );
-  }
-
-  if (!data) return null;
+  if (loading || !data || typeof data.hours_total !== "number") return null;
 
   const stats = [
     { label: "Tổng giờ chơi", value: `${data.hours_total}h` },
