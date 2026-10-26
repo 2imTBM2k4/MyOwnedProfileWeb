@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ThemeToggle() {
+  const { t } = useLanguage();
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
 
@@ -43,7 +45,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      aria-label={theme === "dark" ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+      aria-label={theme === "dark" ? t.nav.themeLight : t.nav.themeDark}
       className="relative p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
     >
       <div className="relative w-4 h-4 overflow-hidden">

@@ -8,6 +8,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import ProjectPreview from "@/components/ProjectPreview";
 import { PROJECT_PREVIEWS } from "@/data/project-previews";
 import { SocialIcon } from "@/components/SocialIcon";
+import { useLanguage } from "@/context/LanguageContext";
 import { isFeaturedTag, orderProjects, previewGears, publicUrl, validPayload, type Gear, type Project } from "@/lib/profile-content";
 import styles from "./profile.module.css";
 
@@ -25,6 +26,7 @@ const SOURCES = [
 ] as const;
 
 export default function HomePage() {
+  const { t } = useLanguage();
   const [data, setData] = useState<SiteData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
   const [failures, setFailures] = useState<string[]>([]);
@@ -107,7 +109,7 @@ export default function HomePage() {
   return (
     <div className={styles.profile} ref={content}>
       <SmoothScroll />
-      <a className={styles.skipLink} href="#main">Đến nội dung chính</a>
+      <a className={styles.skipLink} href="#main">{t.common.skipToContent}</a>
       <div className={styles.pageContent}>
       <div className={styles.frame}>
         <FloatingNavbar />
@@ -116,31 +118,31 @@ export default function HomePage() {
             <h1 aria-label="Trần Bình Minh."><span className={styles.nameMask} aria-hidden="true"><span data-name-word>Trần</span></span>{" "}<span className={styles.nameMask} aria-hidden="true"><span data-name-word>Bình</span></span>{" "}<span className={styles.nameMask} aria-hidden="true"><span data-name-word>Minh.</span></span></h1>
             <div className={styles.heroDetails}>
               <div className={styles.heroIntro}>
-                <p className={styles.role}>Lập trình viên phía máy chủ</p>
-                <p>Mình là Minh, sinh viên năm cuối CNTT. Mình thích tìm hiểu cách một ứng dụng vận hành, rồi tự tay xây dựng nó.</p>
+                <p className={styles.role}>{t.hero.role}</p>
+                <p>{t.hero.intro}</p>
                 <div className={styles.actions}>
-                  <a className={styles.primary} href="#projects">Xem dự án <ArrowDown size={17} /></a>
-                  {cvState === "ready" && <a className={styles.textLink} href="/api/cv" download>Tải CV <Download size={17} /></a>}
-                  <a className={styles.textLink} href={`mailto:${EMAIL}`}>Trò chuyện với mình <ArrowUpRight size={17} /></a>
+                  <a className={styles.primary} href="#projects">{t.hero.viewProjects} <ArrowDown size={17} /></a>
+                  {cvState === "ready" && <a className={styles.textLink} href="/api/cv" download>{t.hero.downloadCv} <Download size={17} /></a>}
+                  <a className={styles.textLink} href={`mailto:${EMAIL}`}>{t.hero.chatWithMe} <ArrowUpRight size={17} /></a>
                 </div>
-                {cvState === "error" && <p className={styles.cvNotice} role="status">Chưa thể tải CV. <button type="button" onClick={() => void refreshCv()}>Thử lại</button></p>}
+                {cvState === "error" && <p className={styles.cvNotice} role="status">{t.hero.cvLoadError} <button type="button" onClick={() => void refreshCv()}>{t.common.retry}</button></p>}
               </div>
               <div className={styles.personalNote}>
-                {avatar && <img src={avatar} alt="Ảnh đại diện của Minh" width="60" height="60" className={styles.avatar} />}
-                <div><span>@{data.profile?.username || "silentboiz"}</span><p>Viết phần mềm.<br />Thử một món đồ mới.<br />Nghe một bản nhạc hay.</p></div>
+                {avatar && <img src={avatar} alt={t.hero.avatarAlt} width="60" height="60" className={styles.avatar} />}
+                <div><span>@{data.profile?.username || "silentboiz"}</span><p>{t.hero.personalNoteLines[0]}<br />{t.hero.personalNoteLines[1]}<br />{t.hero.personalNoteLines[2]}</p></div>
               </div>
             </div>
-            <a className={styles.heroFoot} href="#projects">Một vài thứ mình đang xây dựng <ArrowDown size={16} /></a>
+            <a className={styles.heroFoot} href="#projects">{t.hero.buildingFoot} <ArrowDown size={16} /></a>
           </section>
 
           {failures.length > 0 && <div className={styles.notice} role="status">
-            <span>Một phần dữ liệu chưa tải được. Nội dung có sẵn vẫn được giữ lại.</span>
-            <button onClick={() => void refresh()} disabled={loading}>{loading ? "Đang tải…" : "Thử lại"}</button>
+            <span>{t.notice.dataLoadError}</span>
+            <button onClick={() => void refresh()} disabled={loading}>{loading ? t.common.loading : t.common.retry}</button>
           </div>}
 
           <section id="projects" className={styles.section}>
             <div className={styles.sectionHeading} data-reveal>
-              <h2>Những thứ mình làm.</h2>
+              <h2>{t.projects.heading}</h2>
             </div>
             <div className={styles.projects}>
               {projects.map(project => {
@@ -149,56 +151,58 @@ export default function HomePage() {
                 const image = publicUrl(project.image_url) || (source ? PROJECT_PREVIEWS[source] : undefined);
                 // This repository's stored description still describes its former gaming layout.
                 const isThisSite = source === "https://github.com/2imTBM2k4/MyOwnedProfileWeb";
+                const title = isThisSite ? t.projects.thisSiteTitle : project.title;
+                const description = isThisSite ? t.projects.thisSiteDescription : project.description;
                 return <article key={project.id} className={`${styles.project} ${image ? styles.projectWithImage : ""}`} data-reveal>
-                  {image && <ProjectPreview image={image} title={isThisSite ? "Trang cá nhân" : project.title} href={demo || source} />}
+                  {image && <ProjectPreview image={image} title={title} href={demo || source} />}
                   <div className={styles.projectContent}>
-                    <h3>{isThisSite ? "Trang cá nhân" : project.title}</h3>
+                    <h3>{title}</h3>
                     <div className={styles.projectTop}>
-                      <span>{project.status === "completed" ? "Đã hoàn thành" : project.status === "active" ? "Đang phát triển" : "Dự án cá nhân"}</span>
+                      <span>{project.status === "completed" ? t.projects.statusCompleted : project.status === "active" ? t.projects.statusActive : t.projects.statusPersonal}</span>
                       {project.created_at && !Number.isNaN(Date.parse(project.created_at)) && <span>{new Date(project.created_at).getFullYear()}</span>}
                     </div>
-                    {(isThisSite || project.description) && <p className={styles.projectDescription}>{isThisSite ? "Trang hồ sơ cá nhân xây dựng bằng Next.js, giới thiệu các dự án lập trình, thông tin liên hệ và một góc dành cho thiết bị đang dùng." : project.description}</p>}
+                    {(isThisSite || description) && <p className={styles.projectDescription}>{description}</p>}
                     {project.tags?.some(tag => !isFeaturedTag(tag)) && <p className={styles.technologies}>{project.tags.filter(tag => !isFeaturedTag(tag)).join(" · ")}</p>}
                     <div className={styles.projectLinks}>
-                      {demo && <a href={demo} target="_blank" rel="noopener noreferrer" aria-label={`Xem ${project.title} (mở tab mới)`}>Xem sản phẩm <ArrowUpRight size={18} /></a>}
-                      {source && <a href={source} target="_blank" rel="noopener noreferrer" aria-label={`Mã nguồn ${project.title} (mở tab mới)`}>Mã nguồn <ArrowUpRight size={18} /></a>}
+                      {demo && <a href={demo} target="_blank" rel="noopener noreferrer" aria-label={t.projects.viewProjectAria.replace("{title}", title)}>{t.projects.viewProduct} <ArrowUpRight size={18} /></a>}
+                      {source && <a href={source} target="_blank" rel="noopener noreferrer" aria-label={t.projects.sourceCodeAria.replace("{title}", title)}>{t.projects.sourceCode} <ArrowUpRight size={18} /></a>}
                     </div>
                   </div>
                 </article>;
               })}
-              {projects.length === 0 && <p className={styles.empty} role="status">{loading ? "Đang tải các dự án…" : failures.includes("projects") ? "Chưa thể tải danh sách dự án. Bạn có thể thử lại ở trên." : "Mình đang cập nhật dự án. Quay lại sau nhé."}</p>}
+              {projects.length === 0 && <p className={styles.empty} role="status">{loading ? t.projects.loadingProjects : failures.includes("projects") ? t.projects.loadFailed : t.projects.empty}</p>}
             </div>
-            {github && <a className={styles.textLink} href={publicUrl(github.url)} target="_blank" rel="noopener noreferrer">Ghé GitHub của mình <ArrowUpRight size={18} /></a>}
+            {github && <a className={styles.textLink} href={publicUrl(github.url)} target="_blank" rel="noopener noreferrer">{t.projects.visitGithub} <ArrowUpRight size={18} /></a>}
           </section>
 
           <section id="about" className={`${styles.section} ${styles.about}`}>
-            <div data-reveal><h2>Một chút về mình.</h2><p className={styles.aboutAside}>Sinh viên năm cuối<br />Kỹ sư Công nghệ thông tin</p></div>
+            <div data-reveal><h2>{t.about.heading}</h2><p className={styles.aboutAside}>{t.about.studentBadge.split("\n").map((line, idx) => <span key={idx}>{idx > 0 && <br />}{line}</span>)}</p></div>
             <div className={styles.aboutBody}>
-              <p className={styles.statement} data-reveal>Mình muốn hiểu cả những gì diễn ra phía sau một giao diện.</p>
-              <p data-reveal>Đó là lý do mình chọn đi sâu vào lập trình phía máy chủ: cách dữ liệu được lưu, một yêu cầu được xử lý và các phần của ứng dụng làm việc cùng nhau.</p>
-              <p data-reveal>Mình đang học qua các dự án cá nhân, tập viết mã dễ đọc và xử lý đúng những tình huống thực tế. Hiện mình tìm kiếm cơ hội bắt đầu công việc lập trình phía máy chủ.</p>
+              <p className={styles.statement} data-reveal>{t.about.statement}</p>
+              <p data-reveal>{t.about.paragraph1}</p>
+              <p data-reveal>{t.about.paragraph2}</p>
               <div className={styles.skillList} data-reveal>
-                <div><span>Ngôn ngữ & nền tảng</span><p>JavaScript · TypeScript · Node.js</p></div>
-                <div><span>Dữ liệu</span><p>PostgreSQL · Supabase</p></div>
-                <div><span>Công cụ làm việc</span><p>Git · GitHub · Docker · Postman</p></div>
+                <div><span>{t.about.skills.languages}</span><p>JavaScript · TypeScript · Node.js</p></div>
+                <div><span>{t.about.skills.data}</span><p>PostgreSQL · Supabase</p></div>
+                <div><span>{t.about.skills.tools}</span><p>Git · GitHub · Docker · Postman</p></div>
               </div>
             </div>
           </section>
 
           <section id="gears" className={`${styles.section} ${styles.gears}`}>
             <div className={styles.sectionHeading} data-reveal>
-              <div><h2>Ngoài những dòng mã.</h2><p>Một góc nhỏ cho bàn phím, âm thanh và những món đồ mình dùng mỗi ngày.</p></div>
-              <Link className={styles.textLink} href="/gears">Góc thiết bị <ArrowUpRight size={18} /></Link>
+              <div><h2>{t.gearsHome.heading}</h2><p>{t.gearsHome.subtitle}</p></div>
+              <Link className={styles.textLink} href="/gears">{t.gearsHome.viewCollection} <ArrowUpRight size={18} /></Link>
             </div>
             <div className={styles.gearGrid}>
               {gears.map(gear => <article className={styles.gear} key={gear.id} data-reveal>
-                {publicUrl(gear.image_url) && <Link href="/gears" className={styles.gearImage} aria-label={`Xem ${gear.name} trong góc thiết bị`}><img src={publicUrl(gear.image_url)} alt={gear.name} loading="lazy" /></Link>}
-                <div className={styles.gearMeta}><span>{gear.brand || "Đang sử dụng"}</span><span>Đang dùng</span></div>
+                {publicUrl(gear.image_url) && <Link href="/gears" className={styles.gearImage} aria-label={t.gearsHome.viewGearAria.replace("{name}", gear.name)}><img src={publicUrl(gear.image_url)} alt={gear.name} loading="lazy" /></Link>}
+                <div className={styles.gearMeta}><span>{gear.brand || t.gearsHome.defaultBrand}</span><span>{t.gearsHome.inUse}</span></div>
                 <h3>{gear.name}</h3>
                 {gear.notes && <p className={styles.gearNotes}>{gear.notes}</p>}
               </article>)}
             </div>
-            {gears.length === 0 && <p className={styles.empty} role="status">{loading ? "Đang tải thiết bị…" : failures.includes("gears") ? "Chưa thể tải thiết bị. Bạn có thể thử lại ở trên." : "Góc thiết bị đang được cập nhật."}</p>}
+            {gears.length === 0 && <p className={styles.empty} role="status">{loading ? t.gearsHome.loading : failures.includes("gears") ? t.gearsHome.loadFailed : t.gearsHome.empty}</p>}
           </section>
 
         </main>
@@ -208,20 +212,20 @@ export default function HomePage() {
         <div className={styles.footerPanel}>
           <div className={styles.frame}>
           <div className={styles.footerContact}>
-            <h2 data-reveal>Cùng trò chuyện nhé.</h2>
+            <h2 data-reveal>{t.footer.heading}</h2>
             <div className={styles.contactBody}>
-              <p data-reveal>Về một cơ hội làm việc, một dự án,<br />hay đơn giản là một chiếc bàn phím hay.</p>
+              <p data-reveal>{t.footer.subtitle.split("\n").map((line, idx) => <span key={idx}>{idx > 0 && <br />}{line}</span>)}</p>
               <div className={styles.emailGroup} data-reveal>
                 <p className={styles.location}>Ho Chi Minh City, Vietnam</p>
                 <a className={styles.email} href={`mailto:${EMAIL}`}>{EMAIL} <ArrowUpRight size={22} /></a>
-                <button className={styles.copyButton} onClick={() => void copyEmail()} aria-label="Sao chép địa chỉ email">{copyState === "copied" ? <Check size={16} /> : <Copy size={16} />}<span>{copyState === "copied" ? "Đã sao chép" : "Sao chép"}</span></button>
-                <span className={styles.copyStatus} role="status">{copyState === "failed" ? "Chưa sao chép được. Bạn có thể chọn địa chỉ email hoặc nhấn để gửi thư." : copyState === "copied" ? "Đã sao chép địa chỉ email." : ""}</span>
+                <button className={styles.copyButton} onClick={() => void copyEmail()} aria-label={t.footer.copyEmailAria}>{copyState === "copied" ? <Check size={16} /> : <Copy size={16} />}<span>{copyState === "copied" ? t.footer.copied : t.footer.copy}</span></button>
+                <span className={styles.copyStatus} role="status">{copyState === "failed" ? t.footer.copyFailedStatus : copyState === "copied" ? t.footer.copySuccessStatus : ""}</span>
               </div>
             </div>
             <div className={styles.socials} data-reveal>{socialLinks.map(link => <a key={link.id} href={publicUrl(link.url)} target="_blank" rel="noopener noreferrer"><SocialIcon platform={link.platform} className="w-4 h-4" />{link.platform}<ArrowUpRight size={15} /></a>)}</div>
           </div>
           <p className={styles.footerName} aria-hidden="true">silentboiz.</p>
-        <div className={styles.footer}><span>© {new Date().getFullYear()} Trần Bình Minh</span><span>Đang học. Đang làm. Đang khám phá.</span><a href="#hero">Về đầu trang ↑</a></div>
+        <div className={styles.footer}><span>© {new Date().getFullYear()} Trần Bình Minh</span><span>{t.footer.tagline}</span><a href="#hero">{t.footer.backToTop}</a></div>
           </div>
         </div>
       </footer>

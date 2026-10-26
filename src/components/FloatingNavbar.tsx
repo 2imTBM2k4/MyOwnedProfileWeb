@@ -1,10 +1,13 @@
 "use client";
 
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/context/LanguageContext";
 import { useEffect, useRef, useState } from "react";
 import styles from "@/app/profile.module.css";
 
 export default function FloatingNavbar({ catalogue = false }: { catalogue?: boolean }) {
+  const { t } = useLanguage();
   const [compact, setCompact] = useState(false);
   const [active, setActive] = useState("");
   const progress = useRef<HTMLDivElement>(null);
@@ -40,15 +43,18 @@ export default function FloatingNavbar({ catalogue = false }: { catalogue?: bool
   return (
     <div className={styles.headerSpace}>
     <header className={`${styles.header} ${compact ? styles.headerCompact : ""}`} data-compact={compact}>
-      <a href={catalogue ? "/" : "#hero"} className={styles.brand} aria-label="silentboiz — về trang chủ">silentboiz<span>.</span></a>
-      <nav aria-label="Điều hướng chính" className={styles.nav}>
-        <a href={`${home}#projects`} aria-current={active === "projects" ? "location" : undefined}>Dự án</a>
-        <a href={`${home}#about`} aria-current={active === "about" ? "location" : undefined}>Về mình</a>
-        <a href={catalogue ? "#collection" : "#gears"} aria-current={active === "gears" ? "location" : undefined}>Thiết bị</a>
-        <a href={`${home}#contact`} aria-current={active === "contact" ? "location" : undefined}>Liên hệ</a>
+      <a href={catalogue ? "/" : "#hero"} className={styles.brand} aria-label={t.nav.brandAria}>silentboiz<span>.</span></a>
+      <nav aria-label={t.nav.mainNav} className={styles.nav}>
+        <a href={`${home}#projects`} aria-current={active === "projects" ? "location" : undefined}>{t.nav.projects}</a>
+        <a href={`${home}#about`} aria-current={active === "about" ? "location" : undefined}>{t.nav.about}</a>
+        <a href={catalogue ? "#collection" : "#gears"} aria-current={active === "gears" ? "location" : undefined}>{t.nav.gears}</a>
+        <a href={`${home}#contact`} aria-current={active === "contact" ? "location" : undefined}>{t.nav.contact}</a>
       </nav>
-      <ThemeToggle />
-      <div className={styles.scrollTrack} role="progressbar" aria-label="Tiến trình cuộn trang" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><div ref={progress} className={styles.scrollProgress} /></div>
+      <div className={styles.headerControls}>
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
+      <div className={styles.scrollTrack} role="progressbar" aria-label={t.nav.scrollProgress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><div ref={progress} className={styles.scrollProgress} /></div>
     </header>
     </div>
   );

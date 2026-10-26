@@ -40,7 +40,8 @@
 .nav { display: flex; align-items: center; gap: 30px; margin-left: auto; font-size: 14px; }
 .nav a { padding: 12px 0; min-height: 44px; }
 .nav a[aria-current] { color: var(--highlight); font-weight: 700; }
-.profile .header > button { background: var(--panel); color: var(--ink); box-shadow: none; width: 44px; height: 44px; display: grid; place-items: center; }
+.headerControls { display: flex; align-items: center; gap: 8px; }
+.profile .headerControls button, .profile .header > button { background: var(--panel); color: var(--ink); box-shadow: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; }
 .hero { padding-top: 76px; padding-bottom: 36px; scroll-margin-top: 108px; }
 .hero h1 { font-size: clamp(64px, 8.8vw, 116px); line-height: 1.1; margin: 0 0 48px; letter-spacing: -.065em; }
 .nameMask { display: inline-block; overflow: hidden; vertical-align: bottom; padding-top: .15em; padding-bottom: .15em; margin-block: -.15em; }
