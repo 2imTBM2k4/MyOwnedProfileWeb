@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, Be_Vietnam_Pro, Fraunces, JetBrains_Mono } from "next/font/google";
 import { LanguageProvider } from "@/context/LanguageContext";
 import "./globals.css";
 
@@ -13,6 +13,28 @@ const fontDisplay = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
   weight: ["500", "600", "700", "800"],
   variable: "--font-display",
+  display: "swap",
+});
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-vietnam",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400"],
+  style: ["italic", "normal"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "600"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -33,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`scroll-smooth ${inter.variable} ${fontDisplay.variable}`}
+      className={`scroll-smooth ${inter.variable} ${fontDisplay.variable} ${beVietnamPro.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -43,10 +65,13 @@ export default function RootLayout({
               try {
                 const saved = localStorage.getItem('theme');
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (saved === 'dark' || (!saved && prefersDark)) {
+                const isDark = saved === 'dark' || (!saved && prefersDark);
+                if (isDark) {
                   document.documentElement.classList.add('dark');
+                  document.documentElement.dataset.theme = 'dark';
                 } else {
                   document.documentElement.classList.remove('dark');
+                  document.documentElement.dataset.theme = 'light';
                 }
                 const savedLang = localStorage.getItem('locale');
                 if (savedLang === 'en' || savedLang === 'vi') {
@@ -57,7 +82,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={beVietnamPro.className}>
         <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>

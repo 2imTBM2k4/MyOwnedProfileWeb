@@ -35,6 +35,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  RefreshCw,
 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 import ImageCropper from "@/components/ImageCropper";
@@ -43,6 +44,26 @@ import ThemeToggle from "@/components/ThemeToggle";
 import styles from "./admin.module.css";
 import { sortRows } from "@/lib/admin-sort";
 import { validateCv } from "@/lib/cv";
+
+const GEAR_CATEGORIES = [
+  { value: "keyboard", label: "Bàn phím (Keyboard)" },
+  { value: "mouse", label: "Chuột (Mouse)" },
+  { value: "monitor", label: "Màn hình (Monitor)" },
+  { value: "mousepad", label: "Lót chuột (Mousepad)" },
+  { value: "micro", label: "Micro" },
+  { value: "iem", label: "Tai nghe nhét tai (IEM)" },
+  { value: "headset", label: "Tai nghe chụp tai (Headset)" },
+  { value: "dac", label: "Bộ giải mã (DAC)" },
+  { value: "dap", label: "Máy nghe nhạc (DAP)" },
+  { value: "phone", label: "Điện thoại (Phone)" },
+  { value: "other", label: "Khác" },
+];
+
+function getCategoryLabel(cat: string | null) {
+  if (!cat) return "—";
+  const found = GEAR_CATEGORIES.find(c => c.value.toLowerCase() === cat.toLowerCase());
+  return found ? found.label.split(" (")[0] : cat;
+}
 
 type Profile = {
   username: string;
@@ -88,6 +109,17 @@ type Project = {
   status: "active" | "completed" | null;
   tags: string[] | null;
   created_at: string;
+  problem?: string | null;
+  did?: string | null;
+  result?: string | null;
+  kind?: string | null;
+  tone?: string | null;
+  title_en?: string | null;
+  kind_en?: string | null;
+  problem_en?: string | null;
+  did_en?: string | null;
+  result_en?: string | null;
+  description_en?: string | null;
 };
 type Tab = "profile" | "gears" | "games" | "social" | "projects";
 
@@ -471,6 +503,7 @@ export default function AdminPage() {
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectOpen, setProjectOpen] = useState(false);
   const [projectEditId, setProjectEditId] = useState<string | null>(null);
+  const [projectLangTab, setProjectLangTab] = useState<"vi" | "en">("vi");
   const [projectForm, setProjectForm] = useState({
     title: "",
     description: "",
@@ -480,6 +513,17 @@ export default function AdminPage() {
     status: "active" as "active" | "completed",
     tags: "",
     isFeatured: false,
+    kind: "",
+    problem: "",
+    did: "",
+    result: "",
+    tone: "",
+    title_en: "",
+    kind_en: "",
+    problem_en: "",
+    did_en: "",
+    result_en: "",
+    description_en: "",
   });
 
   const fetchProfile = async () => {
@@ -519,6 +563,43 @@ export default function AdminPage() {
       setProjectError(error instanceof Error ? error.message : "Không thể tải danh sách dự án.");
     } finally {
       setProjectsLoading(false);
+    }
+  };
+
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+
+  const handleSync = async (scope: "all" | "projects" | "gears" | "social" | "profile" = "all") => {
+    const scopeNames: Record<string, string> = {
+      all: "tất cả danh mục",
+      projects: "dự án",
+      gears: "thiết bị",
+      social: "liên kết",
+      profile: "hồ sơ",
+    };
+    if (!confirm(`Bạn có chắc muốn đồng bộ dữ liệu ${scopeNames[scope] || scope} từ trang giới thiệu không?`)) return;
+    setSyncing(true);
+    setSyncStatus(null);
+    try {
+      const res = await fetch("/api/admin/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scope }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Đồng bộ thất bại");
+
+      if (scope === "all" || scope === "projects") await fetchProjects();
+      if (scope === "all" || scope === "gears") await fetchGears();
+      if (scope === "all" || scope === "social") await fetchSocials();
+      if (scope === "all" || scope === "profile") await fetchProfile();
+
+      setSyncStatus(`Đã đồng bộ ${scopeNames[scope] || scope} từ trang giới thiệu thành công.`);
+      setTimeout(() => setSyncStatus(null), 4000);
+    } catch (err) {
+      setSyncStatus(err instanceof Error ? err.message : "Đồng bộ thất bại.");
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -803,6 +884,17 @@ export default function AdminPage() {
       image_url: projectForm.image_url || null,
       status: projectForm.status,
       tags: tagList,
+      kind: projectForm.kind || null,
+      problem: projectForm.problem || null,
+      did: projectForm.did || null,
+      result: projectForm.result || null,
+      tone: projectForm.tone || null,
+      title_en: projectForm.title_en || null,
+      kind_en: projectForm.kind_en || null,
+      problem_en: projectForm.problem_en || null,
+      did_en: projectForm.did_en || null,
+      result_en: projectForm.result_en || null,
+      description_en: projectForm.description_en || null,
     });
 
     setProjectSaving(true);
@@ -838,6 +930,17 @@ export default function AdminPage() {
         status: "active",
         tags: "",
         isFeatured: false,
+        kind: "",
+        problem: "",
+        did: "",
+        result: "",
+        tone: "",
+        title_en: "",
+        kind_en: "",
+        problem_en: "",
+        did_en: "",
+        result_en: "",
+        description_en: "",
       });
       await fetchProjects();
     } catch (error) {
@@ -847,6 +950,7 @@ export default function AdminPage() {
 
   const openAddProject = () => {
     setProjectEditId(null);
+    setProjectLangTab("vi");
     setProjectForm({
       title: "",
       description: "",
@@ -856,12 +960,24 @@ export default function AdminPage() {
       status: "active",
       tags: "",
       isFeatured: false,
+      kind: "",
+      problem: "",
+      did: "",
+      result: "",
+      tone: "",
+      title_en: "",
+      kind_en: "",
+      problem_en: "",
+      did_en: "",
+      result_en: "",
+      description_en: "",
     });
     setProjectOpen(true);
   };
 
   const editProject = (p: Project) => {
     setProjectEditId(p.id);
+    setProjectLangTab("vi");
     const tagArr = Array.isArray(p.tags) ? p.tags : [];
     const isFeatured = tagArr.includes("featured");
     const displayTags = tagArr.filter((t) => t !== "featured").join(", ");
@@ -875,6 +991,17 @@ export default function AdminPage() {
       status: p.status || "active",
       tags: displayTags,
       isFeatured,
+      kind: p.kind || "",
+      problem: p.problem || "",
+      did: p.did || "",
+      result: p.result || "",
+      tone: p.tone || "",
+      title_en: p.title_en || "",
+      kind_en: p.kind_en || "",
+      problem_en: p.problem_en || "",
+      did_en: p.did_en || "",
+      result_en: p.result_en || "",
+      description_en: p.description_en || "",
     });
     setProjectOpen(true);
   };
@@ -1094,6 +1221,13 @@ export default function AdminPage() {
           ))}
         </nav>
 
+        {syncStatus && (
+          <div className="bg-[var(--panel)] border border-[var(--highlight)] text-[var(--ink)] px-4 py-2.5 rounded-lg text-sm flex items-center justify-between mb-4">
+            <span>{syncStatus}</span>
+            <button type="button" onClick={() => setSyncStatus(null)} className="text-xs text-[var(--secondary)] hover:text-[var(--ink)]">✕</button>
+          </div>
+        )}
+
         {projectError && !projectOpen && <div className={styles.errorNotice} role="alert">
           {projectError} <button type="button" onClick={() => void fetchProjects()}>Tải lại dự án</button>
         </div>}
@@ -1249,18 +1383,31 @@ export default function AdminPage() {
               <p role="status">{cvMessage}</p>
             </section>
 
-            <Button
-              onClick={saveProfile}
-              disabled={profileSaving}
-              className={`${styles.primary} px-6`}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {profileSaving
-                ? "Đang lưu..."
-                : profileSaved
-                  ? "Đã lưu"
-                  : "Lưu hồ sơ"}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={saveProfile}
+                disabled={profileSaving}
+                className={`${styles.primary} px-6`}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {profileSaving
+                  ? "Đang lưu..."
+                  : profileSaved
+                    ? "Đã lưu"
+                    : "Lưu hồ sơ"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleSync("profile")}
+                disabled={syncing}
+                className={styles.secondary}
+                title="Đồng bộ tên và tiểu sử từ trang giới thiệu"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+                Đồng bộ từ trang giới thiệu
+              </Button>
+            </div>
           </div>
         )}
 
@@ -1274,12 +1421,24 @@ export default function AdminPage() {
                   ({projects.length})
                 </span>
               </h2>
-              <Button
-                onClick={openAddProject}
-                className={styles.primary}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Thêm dự án
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync("projects")}
+                  disabled={syncing}
+                  className={styles.secondary}
+                  title="Đồng bộ dự án chuẩn (DroneFood, Portfolio) từ trang giới thiệu"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Đồng bộ từ trang giới thiệu
+                </Button>
+                <Button
+                  onClick={openAddProject}
+                  className={styles.primary}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm dự án
+                </Button>
+              </div>
             </div>
 
             <div className={styles.tablePanel}>
@@ -1314,8 +1473,17 @@ export default function AdminPage() {
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <FileCode className="w-8 h-8" />
                           <p className="text-sm">
-                            {projectError ? "Chưa thể tải danh sách dự án. Thử tải lại ở trên." : 'Chưa có dự án nào. Nhấn "Thêm Dự án" để tạo mới.'}
+                            {projectError ? "Chưa thể tải danh sách dự án. Thử tải lại ở trên." : 'Chưa có dự án nào trong cơ sở dữ liệu.'}
                           </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleSync("projects")}
+                            disabled={syncing}
+                            className={styles.secondary}
+                          >
+                            <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                            Đồng bộ 2 dự án từ trang giới thiệu
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1336,9 +1504,26 @@ export default function AdminPage() {
                             <TableImage src={p.image_url} name={p.title} />
                           </TableCell>
                           <TableCell className="max-w-xs">
-                            <p className="font-semibold text-[var(--ink)] text-sm">
-                              {p.title}
-                            </p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-[var(--ink)] text-sm">
+                                {p.title}
+                              </p>
+                              {p.tone && (
+                                <Badge variant="outline" className={`text-[10px] px-1 py-0 ${p.tone === 'lime' ? 'text-lime-500 border-lime-500/40' : 'text-purple-400 border-purple-400/40'}`}>
+                                  {p.tone}
+                                </Badge>
+                              )}
+                              {(p.problem || p.did || p.result) && (
+                                <span className="text-[10px] bg-[var(--panel)] text-[var(--secondary)] border border-[var(--line)] px-1 py-0.2 rounded font-mono">
+                                  Case Study
+                                </span>
+                              )}
+                            </div>
+                            {p.kind && (
+                              <p className="text-xs text-[var(--highlight)] font-medium mt-0.5">
+                                {p.kind}
+                              </p>
+                            )}
                             {p.description && (
                               <p className="text-xs text-[var(--secondary)] line-clamp-1 mt-0.5">
                                 {p.description}
@@ -1439,34 +1624,202 @@ export default function AdminPage() {
                     {projectEditId ? "Sửa thông tin dự án" : "Thêm dự án mới"}
                   </DialogTitle>
                 </DialogHeader>
+
+                <div className="flex items-center gap-2 border-b border-[var(--line)] pb-2.5 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setProjectLangTab("vi")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      projectLangTab === "vi"
+                        ? "bg-[var(--accent)] text-[var(--bg)] shadow-xs"
+                        : "text-[var(--secondary)] hover:text-[var(--ink)] bg-[var(--panel)]"
+                    }`}
+                  >
+                    🇻🇳 Tiếng Việt (VI)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProjectLangTab("en")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      projectLangTab === "en"
+                        ? "bg-[var(--accent)] text-[var(--bg)] shadow-xs"
+                        : "text-[var(--secondary)] hover:text-[var(--ink)] bg-[var(--panel)]"
+                    }`}
+                  >
+                    🇬🇧 English (EN)
+                  </button>
+                </div>
+
                 <form onSubmit={handleProjectSubmit} className="space-y-4 pt-1">
-                  <Field label="Tên dự án *">
-                    <SI
-                      placeholder="vd: High-Performance Cache Service"
-                      value={projectForm.title}
-                      onChange={(e) =>
-                        setProjectForm({
-                          ...projectForm,
-                          title: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </Field>
-                  <Field label="Mô tả tóm tắt">
-                    <textarea
-                      rows={3}
-                      placeholder="Mô tả chức năng, kiến trúc hoặc giải pháp kỹ thuật..."
-                      value={projectForm.description}
-                      onChange={(e) =>
-                        setProjectForm({
-                          ...projectForm,
-                          description: e.target.value,
-                        })
-                      }
-                      className={styles.textarea}
-                    />
-                  </Field>
+                  {projectLangTab === "vi" ? (
+                    <>
+                      <Field label="Tên dự án (VI) *">
+                        <SI
+                          placeholder="vd: DroneFood - Hệ thống điều vận Drone"
+                          value={projectForm.title}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              title: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </Field>
+                      <Field label="Loại dự án (Kind VI)">
+                        <SI
+                          placeholder="vd: Nền tảng điều vận & giao hàng Drone"
+                          value={projectForm.kind}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              kind: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field label="Mô tả tóm tắt & Hướng dẫn test (VI)">
+                        <textarea
+                          rows={2}
+                          placeholder="Mô tả chức năng hoặc tài khoản để test dự án..."
+                          value={projectForm.description}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              description: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                      <Field label="Case Study — 01 Vấn đề (Problem VI)">
+                        <textarea
+                          rows={2}
+                          placeholder="Vấn đề cần giải quyết..."
+                          value={projectForm.problem}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              problem: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                      <Field label="Case Study — 02 Việc đã làm (What I did VI)">
+                        <textarea
+                          rows={2}
+                          placeholder="Các giải pháp và tính năng đã triển khai..."
+                          value={projectForm.did}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              did: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                      <Field label="Case Study — 03 Kết quả (Result VI)">
+                        <textarea
+                          rows={2}
+                          placeholder="Kết quả thực tế đạt được..."
+                          value={projectForm.result}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              result: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                    </>
+                  ) : (
+                    <>
+                      <Field label="Tên dự án (English Title)">
+                        <SI
+                          placeholder="e.g. DroneFood - Drone Dispatching Platform"
+                          value={projectForm.title_en}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              title_en: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field label="Loại dự án (English Kind)">
+                        <SI
+                          placeholder="e.g. Full-stack Drone Delivery Platform"
+                          value={projectForm.kind_en}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              kind_en: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field label="Mô tả & Hướng dẫn test (English Description & Test)">
+                        <textarea
+                          rows={2}
+                          placeholder="Brief description or test instructions..."
+                          value={projectForm.description_en}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              description_en: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                      <Field label="Case Study — 01 Problem (English)">
+                        <textarea
+                          rows={2}
+                          placeholder="The core problem addressed..."
+                          value={projectForm.problem_en}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              problem_en: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                      <Field label="Case Study — 02 What I did (English)">
+                        <textarea
+                          rows={2}
+                          placeholder="Architecture, solutions and implementation details..."
+                          value={projectForm.did_en}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              did_en: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                      <Field label="Case Study — 03 Result (English)">
+                        <textarea
+                          rows={2}
+                          placeholder="Outcomes, metrics, and achievements..."
+                          value={projectForm.result_en}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              result_en: e.target.value,
+                            })
+                          }
+                          className={styles.textarea}
+                        />
+                      </Field>
+                    </>
+                  )}
+
                   <div className={styles.fieldGrid}>
                     <Field label="Đường dẫn GitHub">
                       <SI
@@ -1506,6 +1859,20 @@ export default function AdminPage() {
                     </p>
                   </Field>
                   <div className={styles.fieldGrid}>
+                    <Field label="Tông màu (Tone)">
+                      <SS
+                        value={projectForm.tone || "lime"}
+                        onChange={(v) =>
+                          setProjectForm({
+                            ...projectForm,
+                            tone: v,
+                          })
+                        }
+                      >
+                        <option value="lime">Lime (Xanh chuối)</option>
+                        <option value="violet">Violet (Tím nhạt)</option>
+                      </SS>
+                    </Field>
                     <Field label="Trạng thái">
                       <SS
                         value={projectForm.status}
@@ -1522,25 +1889,25 @@ export default function AdminPage() {
                         </option>
                       </SS>
                     </Field>
-                    <Field label="Dự án nổi bật">
-                      <div className="flex items-center h-9 mt-1">
-                        <label className="flex items-center gap-2 cursor-pointer text-sm text-[var(--ink)]">
-                          <input
-                            type="checkbox"
-                            checked={projectForm.isFeatured}
-                            onChange={(e) =>
-                              setProjectForm({
-                                ...projectForm,
-                                isFeatured: e.target.checked,
-                              })
-                            }
-                            className="w-4 h-4 rounded border-[var(--line)] bg-[var(--field)] accent-[var(--highlight)] focus:ring-0"
-                          />
-                          <span>Đặt làm nổi bật</span>
-                        </label>
-                      </div>
-                    </Field>
                   </div>
+                  <Field label="Dự án nổi bật">
+                    <div className="flex items-center h-9 mt-1">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm text-[var(--ink)]">
+                        <input
+                          type="checkbox"
+                          checked={projectForm.isFeatured}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              isFeatured: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 rounded border-[var(--line)] bg-[var(--field)] accent-[var(--highlight)] focus:ring-0"
+                        />
+                        <span>Đặt làm nổi bật</span>
+                      </label>
+                    </div>
+                  </Field>
                   <Field label="Ảnh dự án">
                     <InlineImageUpload
                       value={projectForm.image_url}
@@ -1583,12 +1950,23 @@ export default function AdminPage() {
                   ({gears.length})
                 </span>
               </h2>
-              <Button
-                onClick={openAddGear}
-                className={styles.primary}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Thêm thiết bị
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync("gears")}
+                  disabled={syncing}
+                  className="border-[var(--line)] text-[var(--secondary)] hover:text-[var(--ink)] hover:bg-[var(--panel)]"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Đồng bộ từ trang giới thiệu
+                </Button>
+                <Button
+                  onClick={openAddGear}
+                  className={styles.primary}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm thiết bị
+                </Button>
+              </div>
             </div>
 
             <div className={styles.tablePanel}>
@@ -1621,8 +1999,18 @@ export default function AdminPage() {
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <Monitor className="w-8 h-8" />
                           <p className="text-sm">
-                            Chưa có thiết bị nào. Nhấn "Thêm thiết bị" để thêm.
+                            Chưa có thiết bị nào. Nhấn "Thêm thiết bị" để thêm hoặc đồng bộ danh sách mặc định.
                           </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync("gears")}
+                            disabled={syncing}
+                            className="mt-1 border-[var(--line)] text-[var(--ink)] hover:bg-[var(--line)]"
+                          >
+                            <RefreshCw className={`mr-2 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+                            Đồng bộ thiết bị mặc định
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1640,7 +2028,7 @@ export default function AdminPage() {
                           {g.brand || "—"}
                         </TableCell>
                         <TableCell className="text-[var(--secondary)]">
-                          {g.category || "—"}
+                          {getCategoryLabel(g.category)}
                         </TableCell>
                         <TableCell>
                           <Badge className={styles.status} data-status={g.status || "unknown"}>
@@ -1700,13 +2088,19 @@ export default function AdminPage() {
                     />
                   </Field>
                   <Field label="Loại thiết bị">
-                    <SI
-                      placeholder="mouse, keyboard, monitor, headset, cpu, gpu..."
+                    <SS
                       value={gearForm.category}
-                      onChange={(e) =>
-                        setGearForm({ ...gearForm, category: e.target.value })
+                      onChange={(v) =>
+                        setGearForm({ ...gearForm, category: v })
                       }
-                    />
+                    >
+                      <option value="">Chọn loại thiết bị</option>
+                      {GEAR_CATEGORIES.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label} ({cat.value})
+                        </option>
+                      ))}
+                    </SS>
                   </Field>
                   <Field label="Ảnh">
                     <InlineImageUpload
@@ -2329,12 +2723,23 @@ export default function AdminPage() {
                   ({socials.length})
                 </span>
               </h2>
-              <Button
-                onClick={openAddSocial}
-                className={styles.primary}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Thêm liên kết
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync("social")}
+                  disabled={syncing}
+                  className="border-[var(--line)] text-[var(--secondary)] hover:text-[var(--ink)] hover:bg-[var(--panel)]"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Đồng bộ từ trang giới thiệu
+                </Button>
+                <Button
+                  onClick={openAddSocial}
+                  className={styles.primary}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm liên kết
+                </Button>
+              </div>
             </div>
 
             <div className={styles.tablePanel}>
@@ -2364,8 +2769,18 @@ export default function AdminPage() {
                         <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
                           <LinkIcon className="w-8 h-8" />
                           <p className="text-sm">
-                            Chưa có liên kết nào. Nhấn "Thêm liên kết" để thêm.
+                            Chưa có liên kết nào. Nhấn "Thêm liên kết" để thêm hoặc đồng bộ danh sách mặc định.
                           </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync("social")}
+                            disabled={syncing}
+                            className="mt-1 border-[var(--line)] text-[var(--ink)] hover:bg-[var(--line)]"
+                          >
+                            <RefreshCw className={`mr-2 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+                            Đồng bộ liên kết mặc định
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

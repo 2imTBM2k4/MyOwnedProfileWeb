@@ -69,7 +69,7 @@ export default function AllGearsPage() {
       <FloatingNavbar catalogue />
       <main id="main">
         <section className={catalogue.intro}>
-          <Link href="/#gears" className={styles.textLink}><ArrowLeft size={16} />{t.gearsPage.backToHome}</Link>
+          <Link href="/#gear" className={styles.textLink}><ArrowLeft size={16} />{t.gearsPage.backToHome}</Link>
           <h1>{t.gearsPage.title}</h1>
           <div className={catalogue.introDetails}>
             <p>{t.gearsPage.intro}</p>

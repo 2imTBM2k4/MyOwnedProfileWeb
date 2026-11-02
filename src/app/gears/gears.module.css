@@ -1,4 +1,4 @@
-.intro { padding-top: 28px; }
+.intro { padding-top: clamp(100px, 12vh, 120px); }
 .intro h1 { font-size: clamp(52px, 6vw, 76px); line-height: 1.1; margin-top: 20px; }
 .introDetails { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-top: 28px; }
 .introDetails > p:first-child { max-width: 48ch; font-size: 18px; color: var(--secondary); }
@@ -44,14 +44,14 @@
 
 @media (max-width: 900px) {
   .group .gearGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .intro { padding-top: 28px; }
+  .intro { padding-top: 104px; }
   .introDetails { gap: 28px; }
   .introDetails > p:first-child { font-size: 16px; }
   .collection { margin-top: 52px; }
 }
 @media (max-width: 600px) {
   .group .gearGrid { grid-template-columns: 1fr; }
-  .intro { padding-top: 28px; }
+  .intro { padding-top: 96px; }
   .intro h1 { font-size: 52px; margin-top: 22px; }
   .introDetails, .collectionHeading, .groupHeading { flex-direction: column; align-items: start; gap: 16px; }
   .counts { font-size: 14px; }

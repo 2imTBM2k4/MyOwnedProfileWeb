@@ -1,0 +1,6 @@
+-- Add case study fields to projects table
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS problem TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS did TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS result TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS kind TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS tone TEXT;

@@ -1,61 +1,114 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/context/LanguageContext";
-import { useEffect, useRef, useState } from "react";
 import styles from "@/app/profile.module.css";
+
+const sections = ["about", "work", "experience", "skills", "gear", "contact"] as const;
 
 export default function FloatingNavbar({ catalogue = false }: { catalogue?: boolean }) {
   const { t } = useLanguage();
   const [compact, setCompact] = useState(false);
   const [active, setActive] = useState("");
-  const progress = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const update = () => {
-      setCompact(window.scrollY > 100);
-      const distance = document.documentElement.scrollHeight - innerHeight;
-      const ratio = distance > 0 ? Math.min(1, Math.max(0, scrollY / distance)) : 0;
-      if (progress.current) {
-        progress.current.style.transform = `scaleX(${ratio})`;
-        progress.current.parentElement?.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
+    let ticking = false;
+    let lastCompact = false;
+    const progressEl = progressRef.current;
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+          if (progressEl) {
+            progressEl.style.transform = `scaleX(${progress})`;
+          }
+          const isCompact = window.scrollY > 40;
+          if (isCompact !== lastCompact) {
+            lastCompact = isCompact;
+            setCompact(isCompact);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
-      if (catalogue) { setActive("gears"); return; }
-      const sections = ["contact", "gears", "about", "projects"];
-      const current = sections.find(id => {
-        const element = document.getElementById(id);
-        return element && element.getBoundingClientRect().top <= innerHeight * .4;
-      });
-      setActive(window.scrollY + innerHeight >= document.documentElement.scrollHeight - 8 ? "contact" : current || "");
     };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(document.body);
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    if (catalogue) {
+      setActive("gear");
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+      };
+    }
+
+    const spy = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setActive(e.target.id);
+          }
+        });
+      },
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) spy.observe(el);
+    });
+
     return () => {
-      observer.disconnect();
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      spy.disconnect();
+      window.removeEventListener("scroll", onScroll);
     };
   }, [catalogue]);
-  const home = catalogue ? "/" : "";
+
+  const prefix = catalogue ? "/" : "";
+
   return (
-    <div className={styles.headerSpace}>
-    <header className={`${styles.header} ${compact ? styles.headerCompact : ""}`} data-compact={compact}>
-      <a href={catalogue ? "/" : "#hero"} className={styles.brand} aria-label={t.nav.brandAria}>silentboiz<span>.</span></a>
-      <nav aria-label={t.nav.mainNav} className={styles.nav}>
-        <a href={`${home}#projects`} aria-current={active === "projects" ? "location" : undefined}>{t.nav.projects}</a>
-        <a href={`${home}#about`} aria-current={active === "about" ? "location" : undefined}>{t.nav.about}</a>
-        <a href={catalogue ? "#collection" : "#gears"} aria-current={active === "gears" ? "location" : undefined}>{t.nav.gears}</a>
-        <a href={`${home}#contact`} aria-current={active === "contact" ? "location" : undefined}>{t.nav.contact}</a>
+    <header className={`${styles.nav} ${compact ? styles.compact : ""}`}>
+      <Link
+        href={catalogue ? "/" : "#top"}
+        className={styles.logo}
+        aria-label={`bming — ${t.proto?.home || "home"}`}
+      >
+        bming<span>.</span>
+      </Link>
+      <nav aria-label={t.nav.mainNav}>
+        {sections.map((id) => {
+          const label = t.proto?.nav?.[id] || id;
+          const href = id === "gear" && catalogue ? "#collection" : `${prefix}#${id}`;
+          return (
+            <a
+              key={id}
+              href={href}
+              aria-current={active === id ? "true" : undefined}
+            >
+              {label}
+            </a>
+          );
+        })}
       </nav>
-      <div className={styles.headerControls}>
+      <div className={styles.navControls}>
         <LanguageToggle />
         <ThemeToggle />
       </div>
-      <div className={styles.scrollTrack} role="progressbar" aria-label={t.nav.scrollProgress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><div ref={progress} className={styles.scrollProgress} /></div>
+      <div
+        className={styles.navTrack}
+        role="progressbar"
+        aria-label={t.nav.scrollProgress}
+        aria-hidden="true"
+      >
+        <div ref={progressRef} />
+      </div>
     </header>
-    </div>
   );
 }

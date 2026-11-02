@@ -1,8 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import styles from "@/app/profile.module.css";
+
+const Sun = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+  </svg>
+);
+
+const Moon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" />
+  </svg>
+);
 
 export default function ThemeToggle() {
   const { t } = useLanguage();
@@ -10,7 +23,6 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Read saved theme or check system preference
     const saved = localStorage.getItem("theme") as "light" | "dark" | null;
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const initialTheme = saved || (prefersDark ? "dark" : "light");
@@ -18,8 +30,10 @@ export default function ThemeToggle() {
     setTheme(initialTheme);
     if (initialTheme === "dark") {
       document.documentElement.classList.add("dark");
+      document.documentElement.dataset.theme = "dark";
     } else {
       document.documentElement.classList.remove("dark");
+      document.documentElement.dataset.theme = "light";
     }
     setMounted(true);
   }, []);
@@ -31,35 +45,28 @@ export default function ThemeToggle() {
 
     if (nextTheme === "dark") {
       document.documentElement.classList.add("dark");
+      document.documentElement.dataset.theme = "dark";
     } else {
       document.documentElement.classList.remove("dark");
+      document.documentElement.dataset.theme = "light";
     }
   };
 
   if (!mounted) {
-    return (
-      <div className="w-9 h-9 rounded-full bg-slate-200/50 dark:bg-slate-800/50 animate-pulse" />
-    );
+    return <div className={styles.themeTogglePlaceholder} aria-hidden="true" />;
   }
+
+  const ariaLabel = theme === "dark" ? (t.proto?.toLight || t.nav.themeLight) : (t.proto?.toDark || t.nav.themeDark);
 
   return (
     <button
+      type="button"
+      className={styles.themeToggle}
       onClick={toggleTheme}
-      aria-label={theme === "dark" ? t.nav.themeLight : t.nav.themeDark}
-      className="relative p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
+      aria-label={ariaLabel}
+      title={ariaLabel}
     >
-      <div className="relative w-4 h-4 overflow-hidden">
-        <Sun
-          className={`w-4 h-4 text-amber-500 absolute inset-0 transition-transform duration-500 ${
-            theme === "dark" ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
-          }`}
-        />
-        <Moon
-          className={`w-4 h-4 text-blue-400 absolute inset-0 transition-transform duration-500 ${
-            theme === "dark" ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
-          }`}
-        />
-      </div>
+      <span key={theme}>{theme === "dark" ? <Moon /> : <Sun />}</span>
     </button>
   );
 }

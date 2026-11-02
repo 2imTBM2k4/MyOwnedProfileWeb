@@ -8,6 +8,17 @@ export type Project = {
   status: "active" | "completed" | null;
   tags: string[] | null;
   created_at: string;
+  problem?: string | null;
+  did?: string | null;
+  result?: string | null;
+  kind?: string | null;
+  tone?: string | null;
+  title_en?: string | null;
+  kind_en?: string | null;
+  problem_en?: string | null;
+  did_en?: string | null;
+  result_en?: string | null;
+  description_en?: string | null;
 };
 
 export type Gear = {
@@ -31,7 +42,7 @@ export function validPayload(key: string, value: unknown): boolean {
   return value.every(item => {
     if (!record(item) || typeof item.id !== "string") return false;
     if (key === "projects") return typeof item.title === "string" &&
-      strings(item, ["description", "github_url", "demo_url", "image_url", "created_at"]) &&
+      strings(item, ["description", "github_url", "demo_url", "image_url", "created_at", "problem", "did", "result", "kind", "tone", "title_en", "kind_en", "problem_en", "did_en", "result_en", "description_en"]) &&
       (item.tags == null || Array.isArray(item.tags) && item.tags.every(tag => typeof tag === "string")) &&
       (item.status == null || ["active", "completed"].includes(String(item.status)));
     if (key === "gears") return typeof item.name === "string" &&

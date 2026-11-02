@@ -1,19 +1,42 @@
 .theme {
-  --page: #f6f7f3;
-  --panel: #e9ece5;
-  --ink: #242b25;
-  --secondary: #545e55;
-  --highlight: #375840;
-  --button: #293b2e;
-  --button-ink: #fff;
+  --bg: #f5f4ef;
+  --surface: #ffffff;
+  --text: #151513;
+  --muted: #6b6a63;
+  --line: #e2e0d8;
+  --accent: #4d7c0f;
+  --violet: #6d5ce8;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tile: #f7f6f2;
+  --plate: #f3f2ed;
+  --glass: rgb(255 255 255 / 72%);
+  --page: var(--bg);
+  --panel: var(--surface);
+  --ink: var(--text);
+  --secondary: var(--muted);
+  --highlight: var(--accent);
+  --button: var(--accent);
+  --button-ink: var(--bg);
 }
 
-:global(.dark) .theme {
-  --page: #191c19;
-  --panel: #252b25;
-  --ink: #eceee7;
-  --secondary: #b1b9ae;
-  --highlight: #b9cba8;
-  --button: #c6d5b7;
-  --button-ink: #1b261b;
+:global(.dark) .theme,
+:global([data-theme='dark']) .theme {
+  --bg: #0b0b0a;
+  --surface: #151513;
+  --text: #efeee8;
+  --muted: #8b8a83;
+  --line: #262623;
+  --accent: #c6ff3a;
+  --violet: #9d8cff;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tile: #1b1b19;
+  --plate: #ecebe5;
+  --glass: rgb(21 21 19 / 72%);
+  --page: var(--bg);
+  --panel: var(--surface);
+  --ink: var(--text);
+  --secondary: var(--muted);
+  --highlight: var(--accent);
+  --button: var(--accent);
+  --button-ink: var(--bg);
 }
