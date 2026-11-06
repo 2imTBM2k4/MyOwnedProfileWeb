@@ -1,8 +1,8 @@
-# bming · Backend Developer Portfolio & CMS
+# Tran Binh Minh · Backend Developer Portfolio & CMS
 
 Personal portfolio and headless CMS of **Trần Bình Minh (bming)** — Final-year Software Engineering student specializing in dependable backend systems, database architecture, real-time event streaming, and clean API design.
 
-Live Demo: [bming.vercel.app](https://bming.vercel.app/)
+Live Demo: [tbminh.vercel.app](https://bming.vercel.app/)
 
 ---
 
