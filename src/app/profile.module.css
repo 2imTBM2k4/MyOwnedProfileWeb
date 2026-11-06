@@ -593,15 +593,15 @@
 /* Projects */
 .projects {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 22rem));
+  gap: 1rem;
   perspective: 1400px;
 }
 .card {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 1.5rem;
+  border-radius: 1.25rem;
   background: var(--surface);
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transition: transform 500ms var(--ease), border-color 300ms, opacity 900ms var(--ease), translate 900ms var(--ease), filter 900ms;
@@ -632,7 +632,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  height: clamp(16rem, 28vw, 22rem);
+  height: clamp(11rem, 16vw, 14rem);
   overflow: hidden;
   border-bottom: 1px solid var(--line);
 }
@@ -682,7 +682,7 @@
   letter-spacing: 0;
 }
 .cardBody {
-  padding: clamp(1.25rem, 2.5vw, 2rem);
+  padding: 1rem 1.1rem 1.15rem;
 }
 .cardRow {
   display: flex;
@@ -692,8 +692,8 @@
 .round {
   display: grid;
   place-items: center;
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2.35rem;
+  height: 2.35rem;
   border: 1px solid var(--line);
   border-radius: 50%;
   color: var(--text);
@@ -705,8 +705,8 @@
   color: var(--bg);
 }
 .card h3 {
-  margin-top: 0.75rem;
-  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  margin-top: 0.55rem;
+  font-size: clamp(1.3rem, 2vw, 1.65rem);
   font-weight: 600;
   letter-spacing: -0.04em;
 }
@@ -720,14 +720,15 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
 }
 .tags span {
-  padding: 0.4rem 0.75rem;
+  padding: 0.3rem 0.6rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: color-mix(in srgb, var(--text) 75%, transparent);
-  font-size: 0.72rem;
+  font-size: 0.66rem;
 }
 .linkSmall {
   margin-left: auto;
@@ -1058,6 +1059,14 @@
   font-weight: 600;
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
   animation: pulse 2.6s infinite;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+.btnCircle > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .contact > div {
   display: flex;
@@ -1305,9 +1314,11 @@
     align-items: flex-start;
   }
   .hero,
-  .projects,
   .about {
     grid-template-columns: 1fr;
+  }
+  .projects {
+    grid-template-columns: minmax(0, 30rem);
   }
   .hero {
     padding-top: 7rem;

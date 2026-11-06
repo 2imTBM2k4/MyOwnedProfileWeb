@@ -5,8 +5,11 @@ import { verifyAdminToken } from "@/lib/admin-auth";
 export async function middleware(request: NextRequest) {
   // Protect API routes (except auth and public reads)
   if (request.nextUrl.pathname.startsWith("/api/")) {
-    // Allow auth endpoint
-    if (request.nextUrl.pathname === "/api/auth") {
+    // Allow auth and public contact endpoints
+    if (
+      request.nextUrl.pathname === "/api/auth" ||
+      request.nextUrl.pathname === "/api/contact"
+    ) {
       return NextResponse.next();
     }
 
@@ -23,10 +26,15 @@ export async function middleware(request: NextRequest) {
     // For POST, PATCH, DELETE - check authentication
     const token = request.cookies.get("admin_token");
 
-    if (!await verifyAdminToken(token?.value, process.env.ADMIN_PASSWORD || "")) {
+    if (
+      !(await verifyAdminToken(
+        token?.value,
+        process.env.ADMIN_PASSWORD || ""
+      ))
+    ) {
       return NextResponse.json(
         { error: "Unauthorized - Admin login required" },
-        { status: 401 },
+        { status: 401 }
       );
     }
   }

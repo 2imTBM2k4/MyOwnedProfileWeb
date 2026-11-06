@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   X,
   ExternalLink,
@@ -15,6 +16,7 @@ import { PROJECT_PREVIEWS } from "@/data/project-previews";
 
 interface ProjectDetailModalProps {
   project: Project | null;
+  layoutId?: string;
   isOpen: boolean;
   onClose: () => void;
   locale?: "vi" | "en";
@@ -29,13 +31,27 @@ interface ProjectDetailModalProps {
 }
 
 export default function ProjectDetailModal({
-  project,
+  project: selectedProject,
+  layoutId,
   isOpen,
   onClose,
   locale = "vi",
   caseLabels,
-  fallbackInfo,
+  fallbackInfo: selectedFallbackInfo,
 }: ProjectDetailModalProps) {
+  const reducedMotion = useReducedMotion();
+  const lastProject = useRef<Project | null>(selectedProject);
+  const lastLayoutId = useRef(layoutId);
+  const lastFallbackInfo = useRef(selectedFallbackInfo);
+
+  if (selectedProject) {
+    lastProject.current = selectedProject;
+    lastLayoutId.current = layoutId;
+    lastFallbackInfo.current = selectedFallbackInfo;
+  }
+
+  const project = selectedProject || lastProject.current;
+  const fallbackInfo = selectedProject ? selectedFallbackInfo : lastFallbackInfo.current;
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,7 +75,7 @@ export default function ProjectDetailModal({
     };
   }, [isOpen]);
 
-  if (!isOpen || !project) return null;
+  if (!project) return null;
 
   const isEn = locale === "en";
 
@@ -92,23 +108,48 @@ export default function ProjectDetailModal({
     project.title.toLowerCase().includes("dronefood") ||
     project.github_url?.includes("DroneFood");
 
+  const reveal = (delay: number) => reducedMotion
+    ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : {
+        initial: { opacity: 0, y: 18 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] as const } },
+        exit: { opacity: 0, y: 8, transition: { duration: 0.16 } },
+      };
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="project-modal-title"
-    >
-      <div
-        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl bg-[var(--surface)] text-[var(--text)] border border-[var(--line)] shadow-2xl overflow-hidden font-sans transition-colors duration-300"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--line)",
-        }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="project-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 dark:bg-black/80 backdrop-blur-md"
+          initial={reducedMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.24 }}
+          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="project-modal-title"
+        >
+          <motion.div
+            layoutId={reducedMotion ? undefined : lastLayoutId.current}
+            className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl bg-[var(--surface)] text-[var(--text)] border border-[var(--line)] shadow-2xl overflow-hidden font-sans"
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 16 }}
+            transition={reducedMotion ? { duration: 0 } : {
+              layout: { type: "spring", stiffness: 260, damping: 28, mass: 0.85 },
+              opacity: { duration: 0.22 },
+              scale: { type: "spring", stiffness: 260, damping: 28, mass: 0.85 },
+              y: { type: "spring", stiffness: 260, damping: 28, mass: 0.85 },
+            }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--line)",
+            }}
+          >
         {/* Modal Header */}
-        <div className="relative px-6 py-5 border-b border-[var(--line)] flex items-start justify-between bg-[var(--tile)]/60">
+        <motion.div {...reveal(0.16)} className="relative px-6 py-5 border-b border-[var(--line)] flex items-start justify-between bg-[var(--tile)]/60">
           <div className="space-y-1.5 pr-8">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30 font-semibold">
@@ -150,10 +191,10 @@ export default function ProjectDetailModal({
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </motion.div>
 
         {/* Scrollable Content Body */}
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6 text-sm leading-relaxed scroll-smooth">
+        <motion.div {...reveal(0.24)} className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6 text-sm leading-relaxed scroll-smooth">
           {/* Project Image Banner */}
           {imageUrl && (
             <div className="relative w-full h-52 sm:h-64 rounded-2xl overflow-hidden border border-[var(--line)] bg-[var(--tile)] shadow-md group">
@@ -285,10 +326,10 @@ export default function ProjectDetailModal({
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Modal Footer Actions */}
-        <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--tile)]/60 flex flex-wrap items-center justify-between gap-3">
+        <motion.div {...reveal(0.32)} className="px-6 py-4 border-t border-[var(--line)] bg-[var(--tile)]/60 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 flex-wrap">
             {project.demo_url && (
               <a
@@ -321,8 +362,10 @@ export default function ProjectDetailModal({
           >
             {isEn ? "Close" : "Đóng"}
           </button>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

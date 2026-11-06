@@ -36,6 +36,9 @@ import {
   ArrowUp,
   ArrowDown,
   RefreshCw,
+  Cpu,
+  Briefcase,
+  Bot,
 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 import ImageCropper from "@/components/ImageCropper";
@@ -44,6 +47,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import styles from "./admin.module.css";
 import { sortRows } from "@/lib/admin-sort";
 import { validateCv } from "@/lib/cv";
+import type { SkillItem, ExperienceItem, ChatbotTopicItem } from "@/lib/profile-content";
 
 const GEAR_CATEGORIES = [
   { value: "keyboard", label: "Bàn phím (Keyboard)" },
@@ -121,7 +125,7 @@ type Project = {
   result_en?: string | null;
   description_en?: string | null;
 };
-type Tab = "profile" | "gears" | "games" | "social" | "projects";
+type Tab = "profile" | "gears" | "games" | "social" | "projects" | "skills" | "experiences" | "chatbot";
 
 function TableImage({ src, name }: { src: string | null; name: string }) {
   const [failed, setFailed] = useState(false);
@@ -488,9 +492,57 @@ export default function AdminPage() {
     display_order: "",
   });
 
+  const [skills, setSkills] = useState<SkillItem[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(true);
+  const [skillOpen, setSkillOpen] = useState(false);
+  const [skillEditId, setSkillEditId] = useState<string | null>(null);
+  const [skillForm, setSkillForm] = useState({
+    name: "",
+    slug: "",
+    category: "Backend",
+    invert: false,
+    display_order: 1,
+  });
+  const [skillSaving, setSkillSaving] = useState(false);
+
+  const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
+  const [experiencesLoading, setExperiencesLoading] = useState(true);
+  const [expOpen, setExpOpen] = useState(false);
+  const [expEditId, setExpEditId] = useState<string | null>(null);
+  const [expForm, setExpForm] = useState({
+    company: "",
+    role: "",
+    role_en: "",
+    summary: "",
+    summary_en: "",
+    pointsText: "",
+    pointsEnText: "",
+    period: "Hiện tại",
+    period_en: "Present",
+    is_current: true,
+    project_link: "#work",
+    display_order: 1,
+  });
+  const [expSaving, setExpSaving] = useState(false);
+
+  const [chatbotTopics, setChatbotTopics] = useState<ChatbotTopicItem[]>([]);
+  const [chatbotLoading, setChatbotLoading] = useState(true);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatbotEditId, setChatbotEditId] = useState<string | null>(null);
+  const [chatbotForm, setChatbotForm] = useState({
+    topic_id: "",
+    label: "",
+    keywordsText: "",
+    response: "",
+    response_en: "",
+    display_order: 1,
+  });
+  const [chatbotSaving, setChatbotSaving] = useState(false);
+
   const [sorts, setSorts] = useState<Record<string, { field: string | null; direction: "asc" | "desc" }>>({
     gears: { field: null, direction: "asc" }, games: { field: null, direction: "asc" },
     projects: { field: null, direction: "asc" }, social: { field: null, direction: "asc" },
+    skills: { field: null, direction: "asc" }, experiences: { field: null, direction: "asc" }, chatbot: { field: null, direction: "asc" },
   });
   const [projectError, setProjectError] = useState("");
   const [projectSaving, setProjectSaving] = useState(false);
@@ -566,16 +618,264 @@ export default function AdminPage() {
     }
   };
 
+
+  // ── SKILLS HANDLERS ──
+  const fetchSkills = async () => {
+    setSkillsLoading(true);
+    try {
+      const r = await fetch("/api/skills");
+      const d = await r.json();
+      if (Array.isArray(d)) setSkills(d);
+    } catch {}
+    setSkillsLoading(false);
+  };
+
+  const openAddSkill = () => {
+    setSkillEditId(null);
+    setSkillForm({
+      name: "",
+      slug: "",
+      category: "Backend",
+      invert: false,
+      display_order: skills.length + 1,
+    });
+    setSkillOpen(true);
+  };
+
+  const editSkill = (s: SkillItem) => {
+    setSkillEditId(s.id);
+    setSkillForm({
+      name: s.name,
+      slug: s.slug,
+      category: s.category || "Backend",
+      invert: Boolean(s.invert),
+      display_order: s.display_order ?? (skills.length + 1),
+    });
+    setSkillOpen(true);
+  };
+
+  const deleteSkill = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa công nghệ này?")) return;
+    await fetch(`/api/skills/${id}`, { method: "DELETE" });
+    fetchSkills();
+  };
+
+  const handleSkillSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSkillSaving(true);
+    const body = JSON.stringify({
+      name: skillForm.name.trim(),
+      slug: skillForm.slug.trim().toLowerCase(),
+      category: skillForm.category.trim() || null,
+      invert: Boolean(skillForm.invert),
+      display_order: Number(skillForm.display_order) || null,
+    });
+    try {
+      const res = skillEditId
+        ? await fetch(`/api/skills/${skillEditId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body })
+        : await fetch("/api/skills", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Lỗi lưu kỹ năng");
+        return;
+      }
+      setSkillOpen(false);
+      setSkillEditId(null);
+      await fetchSkills();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Lỗi lưu kỹ năng");
+    } finally {
+      setSkillSaving(false);
+    }
+  };
+
+  // ── EXPERIENCES HANDLERS ──
+  const fetchExperiences = async () => {
+    setExperiencesLoading(true);
+    try {
+      const r = await fetch("/api/experiences");
+      const d = await r.json();
+      if (Array.isArray(d)) setExperiences(d);
+    } catch {}
+    setExperiencesLoading(false);
+  };
+
+  const openAddExperience = () => {
+    setExpEditId(null);
+    setExpForm({
+      company: "",
+      role: "",
+      role_en: "",
+      summary: "",
+      summary_en: "",
+      pointsText: "",
+      pointsEnText: "",
+      period: "Hiện tại",
+      period_en: "Present",
+      is_current: true,
+      project_link: "#work",
+      display_order: experiences.length + 1,
+    });
+    setExpOpen(true);
+  };
+
+  const editExperience = (e: ExperienceItem) => {
+    setExpEditId(e.id);
+    setExpForm({
+      company: e.company,
+      role: e.role,
+      role_en: e.role_en || "",
+      summary: e.summary || "",
+      summary_en: e.summary_en || "",
+      pointsText: (e.points || []).join("\n"),
+      pointsEnText: (e.points_en || []).join("\n"),
+      period: e.period || (e.is_current ? "Hiện tại" : ""),
+      period_en: e.period_en || (e.is_current ? "Present" : ""),
+      is_current: e.is_current ?? true,
+      project_link: e.project_link || "#work",
+      display_order: e.display_order ?? (experiences.length + 1),
+    });
+    setExpOpen(true);
+  };
+
+  const deleteExperience = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa mục kinh nghiệm này?")) return;
+    await fetch(`/api/experiences/${id}`, { method: "DELETE" });
+    fetchExperiences();
+  };
+
+  const handleExpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setExpSaving(true);
+    const body = JSON.stringify({
+      company: expForm.company.trim(),
+      role: expForm.role.trim(),
+      role_en: expForm.role_en.trim() || null,
+      summary: expForm.summary.trim() || null,
+      summary_en: expForm.summary_en.trim() || null,
+      points: expForm.pointsText.split("\n").map(s => s.trim()).filter(Boolean),
+      points_en: expForm.pointsEnText.split("\n").map(s => s.trim()).filter(Boolean),
+      period: expForm.period.trim() || null,
+      period_en: expForm.period_en.trim() || null,
+      is_current: expForm.is_current,
+      project_link: expForm.project_link.trim() || null,
+      display_order: Number(expForm.display_order) || null,
+    });
+    try {
+      const res = expEditId
+        ? await fetch(`/api/experiences/${expEditId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body })
+        : await fetch("/api/experiences", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Lỗi lưu kinh nghiệm");
+        return;
+      }
+      setExpOpen(false);
+      setExpEditId(null);
+      await fetchExperiences();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Lỗi lưu kinh nghiệm");
+    } finally {
+      setExpSaving(false);
+    }
+  };
+
+  // ── CHATBOT HANDLERS ──
+  const fetchChatbot = async () => {
+    setChatbotLoading(true);
+    try {
+      const r = await fetch("/api/chatbot");
+      const d = await r.json();
+      if (Array.isArray(d)) setChatbotTopics(d);
+    } catch {}
+    setChatbotLoading(false);
+  };
+
+  const openAddChatbot = () => {
+    setChatbotEditId(null);
+    setChatbotForm({
+      topic_id: "",
+      label: "",
+      keywordsText: "",
+      response: "",
+      response_en: "",
+      display_order: chatbotTopics.length + 1,
+    });
+    setChatbotOpen(true);
+  };
+
+  const editChatbot = (t: ChatbotTopicItem) => {
+    setChatbotEditId(t.id);
+    setChatbotForm({
+      topic_id: t.topic_id,
+      label: t.label,
+      keywordsText: (t.keywords || []).join(", "),
+      response: t.response,
+      response_en: t.response_en || "",
+      display_order: t.display_order ?? (chatbotTopics.length + 1),
+    });
+    setChatbotOpen(true);
+  };
+
+  const deleteChatbot = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa chủ đề chatbot này?")) return;
+    await fetch(`/api/chatbot/${id}`, { method: "DELETE" });
+    fetchChatbot();
+  };
+
+  const handleChatbotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChatbotSaving(true);
+    const keywords = chatbotForm.keywordsText
+      .split(/[\n,]+/)
+      .map(k => k.trim())
+      .filter(Boolean);
+    const topic_id = (chatbotForm.topic_id || chatbotForm.label)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const body = JSON.stringify({
+      topic_id,
+      label: chatbotForm.label.trim(),
+      keywords,
+      response: chatbotForm.response.trim(),
+      response_en: chatbotForm.response_en.trim() || null,
+      display_order: Number(chatbotForm.display_order) || null,
+    });
+    try {
+      const res = chatbotEditId
+        ? await fetch(`/api/chatbot/${chatbotEditId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body })
+        : await fetch("/api/chatbot", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Lỗi lưu tri thức chatbot");
+        return;
+      }
+      setChatbotOpen(false);
+      setChatbotEditId(null);
+      await fetchChatbot();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Lỗi lưu tri thức chatbot");
+    } finally {
+      setChatbotSaving(false);
+    }
+  };
+
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
-  const handleSync = async (scope: "all" | "projects" | "gears" | "social" | "profile" = "all") => {
+  const handleSync = async (scope: "all" | "projects" | "gears" | "social" | "profile" | "skills" | "experiences" | "chatbot" = "all") => {
     const scopeNames: Record<string, string> = {
       all: "tất cả danh mục",
       projects: "dự án",
       gears: "thiết bị",
       social: "liên kết",
       profile: "hồ sơ",
+      skills: "kỹ năng & công nghệ",
+      experiences: "kinh nghiệm làm việc",
+      chatbot: "tri thức chatbot",
     };
     if (!confirm(`Bạn có chắc muốn đồng bộ dữ liệu ${scopeNames[scope] || scope} từ trang giới thiệu không?`)) return;
     setSyncing(true);
@@ -593,6 +893,9 @@ export default function AdminPage() {
       if (scope === "all" || scope === "gears") await fetchGears();
       if (scope === "all" || scope === "social") await fetchSocials();
       if (scope === "all" || scope === "profile") await fetchProfile();
+      if (scope === "all" || scope === "skills") await fetchSkills();
+      if (scope === "all" || scope === "experiences") await fetchExperiences();
+      if (scope === "all" || scope === "chatbot") await fetchChatbot();
 
       setSyncStatus(`Đã đồng bộ ${scopeNames[scope] || scope} từ trang giới thiệu thành công.`);
       setTimeout(() => setSyncStatus(null), 4000);
@@ -609,6 +912,9 @@ export default function AdminPage() {
     fetchGames();
     fetchSocials();
     fetchProjects();
+    fetchSkills();
+    fetchExperiences();
+    fetchChatbot();
   }, []);
 
   const fetchCv = async () => {
@@ -1047,6 +1353,21 @@ export default function AdminPage() {
       icon: <FileCode className="w-4 h-4" />,
     },
     {
+      key: "skills" as Tab,
+      label: "Kỹ năng & Tech",
+      icon: <Cpu className="w-4 h-4" />,
+    },
+    {
+      key: "experiences" as Tab,
+      label: "Kinh nghiệm",
+      icon: <Briefcase className="w-4 h-4" />,
+    },
+    {
+      key: "chatbot" as Tab,
+      label: "Tri thức Chatbot",
+      icon: <Bot className="w-4 h-4" />,
+    },
+    {
       key: "gears" as Tab,
       label: "Thiết bị",
       icon: <Monitor className="w-4 h-4" />,
@@ -1132,7 +1453,7 @@ export default function AdminPage() {
       <div className={styles.admin}>
         <div className={styles.frame}>
           <header className={styles.topbar}>
-            <a href="/" className={styles.brand}>silentboiz<span>.</span></a>
+            <a href="/" className={styles.brand}>bming<span>.</span></a>
             <div className={styles.topActions}><a href="/" className={styles.backLink}>Về trang giới thiệu ↗</a><ThemeToggle /></div>
           </header>
           <main className={styles.login}>
@@ -1188,7 +1509,7 @@ export default function AdminPage() {
     <div className={styles.admin}>
       <div className={styles.frame}>
         <header className={styles.topbar}>
-          <a href="/" className={styles.brand}>silentboiz<span>.</span></a>
+          <a href="/" className={styles.brand}>bming<span>.</span></a>
           <div className={styles.topActions}>
           <a href="/" className={styles.backLink}>Xem trang giới thiệu ↗</a>
           <ThemeToggle />
@@ -2908,6 +3229,717 @@ export default function AdminPage() {
             </Dialog>
           </>
         )}
+
+        {/* ── SKILLS ── */}
+        {tab === "skills" && (
+          <>
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Kỹ năng & Công nghệ{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
+                  ({skills.length})
+                </span>
+              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync("skills")}
+                  disabled={syncing}
+                  className="border-[var(--line)] text-[var(--secondary)] hover:text-[var(--ink)] hover:bg-[var(--panel)]"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Đồng bộ từ trang giới thiệu
+                </Button>
+                <Button
+                  onClick={openAddSkill}
+                  className={styles.primary}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm công nghệ
+                </Button>
+              </div>
+            </div>
+
+            <div className={styles.tablePanel}>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    <TableHead className="w-16">Logo</TableHead>
+                    {sortHeading("skills", "name", "Tên")}
+                    {sortHeading("skills", "slug", "Devicon Slug")}
+                    {sortHeading("skills", "category", "Phân loại")}
+                    {sortHeading("skills", "display_order", "Thứ tự")}
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {skillsLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-[var(--secondary)] py-10"
+                      >
+                        Đang tải…
+                      </TableCell>
+                    </TableRow>
+                  ) : skills.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
+                          <Cpu className="w-8 h-8" />
+                          <p className="text-sm">
+                            Chưa có công nghệ nào. Nhấn "Thêm công nghệ" hoặc "Đồng bộ từ trang giới thiệu".
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync("skills")}
+                            disabled={syncing}
+                            className="mt-1 border-[var(--line)] text-[var(--ink)] hover:bg-[var(--line)]"
+                          >
+                            <RefreshCw className={`mr-2 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+                            Đồng bộ danh sách kỹ năng mặc định
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    sortRows(skills, sorts.skills.field as keyof SkillItem | null, sorts.skills.direction).map((sk) => (
+                      <TableRow
+                        key={sk.id}
+                        className="border-[var(--line)] hover:bg-[var(--panel)]"
+                      >
+                        <TableCell>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center p-1 bg-[var(--tile)] border border-[var(--line)] ${sk.invert ? "invert dark:invert-0" : ""}`}>
+                            <img
+                              src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${sk.slug}/${sk.slug}-original.svg`}
+                              alt={sk.name}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${sk.slug}/${sk.slug}-plain.svg`;
+                              }}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium text-[var(--ink)]">
+                          {sk.name}
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)] font-mono text-xs">
+                          {sk.slug}
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)]">
+                          <Badge variant="outline" className="border-[var(--line)] text-xs">
+                            {sk.category || "General"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)] font-mono text-xs">
+                          {sk.display_order ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => editSkill(sk)}
+                            aria-label="Chỉnh sửa"
+                            className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteSkill(sk.id)}
+                            aria-label="Xóa"
+                            className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <Dialog open={skillOpen} onOpenChange={setSkillOpen} className={styles.dialogShell}>
+              <DialogContent className={styles.dialog} data-admin-dialog>
+                <DialogHeader>
+                  <DialogTitle className="text-[var(--ink)]">
+                    {skillEditId ? "Sửa kỹ năng / công nghệ" : "Thêm kỹ năng / công nghệ"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSkillSubmit} className="space-y-4 pt-1">
+                  <Field label="Tên công nghệ (vd: Node.js, Docker, PostgreSQL)">
+                    <SI
+                      placeholder="vd: Node.js"
+                      value={skillForm.name}
+                      onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
+                      required
+                    />
+                  </Field>
+                  <Field label="Devicon Slug (tên mã icon từ devicon.dev)">
+                    <div className="flex items-center gap-3">
+                      <SI
+                        placeholder="vd: nodejs, docker, postgresql..."
+                        value={skillForm.slug}
+                        onChange={(e) => setSkillForm({ ...skillForm, slug: e.target.value.toLowerCase().trim() })}
+                        required
+                        className="flex-1"
+                      />
+                      {skillForm.slug && (
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center p-1.5 bg-[var(--tile)] border border-[var(--line)] shrink-0 ${skillForm.invert ? "invert dark:invert-0" : ""}`}>
+                          <img
+                            src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${skillForm.slug}/${skillForm.slug}-original.svg`}
+                            alt={skillForm.slug}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${skillForm.slug}/${skillForm.slug}-plain.svg`;
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-[var(--secondary)] mt-1">
+                      Tra cứu tên icon tại <a href="https://devicon.dev" target="_blank" rel="noreferrer" className="text-[var(--accent)] underline">devicon.dev</a>
+                    </p>
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Danh mục">
+                      <SI
+                        placeholder="Backend, Frontend, Database..."
+                        value={skillForm.category}
+                        onChange={(e) => setSkillForm({ ...skillForm, category: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Thứ tự hiển thị">
+                      <SI
+                        type="number"
+                        placeholder="1, 2, 3..."
+                        value={skillForm.display_order}
+                        onChange={(e) => setSkillForm({ ...skillForm, display_order: Number(e.target.value) })}
+                      />
+                    </Field>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id="skill-invert-checkbox"
+                      checked={skillForm.invert}
+                      onChange={(e) => setSkillForm({ ...skillForm, invert: e.target.checked })}
+                      className="rounded border-[var(--line)] text-[var(--accent)] focus:ring-[var(--accent)] w-4 h-4 cursor-pointer"
+                    />
+                    <Label htmlFor="skill-invert-checkbox" className="text-sm text-[var(--ink)] cursor-pointer">
+                      Đảo màu logo trên giao diện tối (dành cho logo màu đen như Express, Next.js, GitHub...)
+                    </Label>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setSkillOpen(false)}
+                      className="text-[var(--secondary)]"
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={skillSaving}
+                      className={styles.primary}
+                    >
+                      {skillSaving ? "Đang lưu…" : skillEditId ? "Cập nhật" : "Tạo mới"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
+
+        {/* ── EXPERIENCES ── */}
+        {tab === "experiences" && (
+          <>
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Kinh nghiệm làm việc{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
+                  ({experiences.length})
+                </span>
+              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync("experiences")}
+                  disabled={syncing}
+                  className="border-[var(--line)] text-[var(--secondary)] hover:text-[var(--ink)] hover:bg-[var(--panel)]"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Đồng bộ từ trang giới thiệu
+                </Button>
+                <Button
+                  onClick={openAddExperience}
+                  className={styles.primary}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm kinh nghiệm
+                </Button>
+              </div>
+            </div>
+
+            <div className={styles.tablePanel}>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    {sortHeading("experiences", "company", "Công ty / Dự án")}
+                    {sortHeading("experiences", "role", "Vị trí")}
+                    {sortHeading("experiences", "period", "Thời gian")}
+                    <TableHead className="text-[var(--secondary)] font-medium">Tóm tắt</TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {experiencesLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center text-[var(--secondary)] py-10"
+                      >
+                        Đang tải…
+                      </TableCell>
+                    </TableRow>
+                  ) : experiences.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-12">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
+                          <Briefcase className="w-8 h-8" />
+                          <p className="text-sm">
+                            Chưa có mục kinh nghiệm nào. Nhấn "Thêm kinh nghiệm" hoặc "Đồng bộ từ trang giới thiệu".
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync("experiences")}
+                            disabled={syncing}
+                            className="mt-1 border-[var(--line)] text-[var(--ink)] hover:bg-[var(--line)]"
+                          >
+                            <RefreshCw className={`mr-2 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+                            Đồng bộ kinh nghiệm mặc định
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    sortRows(experiences, sorts.experiences.field as keyof ExperienceItem | null, sorts.experiences.direction).map((exp) => (
+                      <TableRow
+                        key={exp.id}
+                        className="border-[var(--line)] hover:bg-[var(--panel)]"
+                      >
+                        <TableCell className="font-semibold text-[var(--ink)]">
+                          {exp.company}
+                        </TableCell>
+                        <TableCell className="text-[var(--ink)]">
+                          <div>{exp.role}</div>
+                          {exp.role_en && <div className="text-xs text-[var(--secondary)]">{exp.role_en}</div>}
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)] text-sm">
+                          {exp.period || (exp.is_current ? "Hiện tại" : "—")}
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)] text-sm max-w-xs truncate">
+                          {exp.summary || "—"}
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => editExperience(exp)}
+                            aria-label="Chỉnh sửa"
+                            className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteExperience(exp.id)}
+                            aria-label="Xóa"
+                            className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <Dialog open={expOpen} onOpenChange={setExpOpen} className={styles.dialogShell}>
+              <DialogContent className={`${styles.dialog} max-w-2xl max-h-[88vh] overflow-y-auto no-scrollbar`} data-admin-dialog>
+                <DialogHeader>
+                  <DialogTitle className="text-[var(--ink)]">
+                    {expEditId ? "Sửa kinh nghiệm làm việc" : "Thêm kinh nghiệm làm việc"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleExpSubmit} className="space-y-4 pt-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Công ty / Tổ chức / Dự án">
+                      <SI
+                        placeholder="vd: DroneFood"
+                        value={expForm.company}
+                        onChange={(e) => setExpForm({ ...expForm, company: e.target.value })}
+                        required
+                      />
+                    </Field>
+                    <Field label="Link dự án / Website liên kết">
+                      <SI
+                        placeholder="vd: #work hoặc https://..."
+                        value={expForm.project_link}
+                        onChange={(e) => setExpForm({ ...expForm, project_link: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Vị trí / Vai trò (Tiếng Việt)">
+                      <SI
+                        placeholder="vd: Backend Developer"
+                        value={expForm.role}
+                        onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
+                        required
+                      />
+                    </Field>
+                    <Field label="Vị trí / Vai trò (Tiếng Anh)">
+                      <SI
+                        placeholder="vd: Backend Developer"
+                        value={expForm.role_en}
+                        onChange={(e) => setExpForm({ ...expForm, role_en: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Thời gian hiển thị (Tiếng Việt)">
+                      <SI
+                        placeholder="vd: Hiện tại hoặc 01/2024 - 06/2024"
+                        value={expForm.period}
+                        onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Thời gian hiển thị (Tiếng Anh)">
+                      <SI
+                        placeholder="vd: Present hoặc Jan 2024 - Jun 2024"
+                        value={expForm.period_en}
+                        onChange={(e) => setExpForm({ ...expForm, period_en: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="exp-current-checkbox"
+                      checked={expForm.is_current}
+                      onChange={(e) => setExpForm({ ...expForm, is_current: e.target.checked })}
+                      className="rounded border-[var(--line)] text-[var(--accent)] focus:ring-[var(--accent)] w-4 h-4 cursor-pointer"
+                    />
+                    <Label htmlFor="exp-current-checkbox" className="text-sm text-[var(--ink)] cursor-pointer">
+                      Đang làm việc tại đây (hiển thị nhãn live chấm xanh)
+                    </Label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Tóm tắt công việc (Tiếng Việt)">
+                      <SI
+                        placeholder="vd: Nền tảng giao đồ ăn tự hành bằng Drone..."
+                        value={expForm.summary}
+                        onChange={(e) => setExpForm({ ...expForm, summary: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Tóm tắt công việc (Tiếng Anh)">
+                      <SI
+                        placeholder="vd: Autonomous drone food delivery platform..."
+                        value={expForm.summary_en}
+                        onChange={(e) => setExpForm({ ...expForm, summary_en: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+
+                  <Field label="Các đóng góp / Điểm nổi bật (Tiếng Việt - mỗi dòng 1 ý)">
+                    <textarea
+                      rows={3}
+                      value={expForm.pointsText}
+                      onChange={(e) => setExpForm({ ...expForm, pointsText: e.target.value })}
+                      placeholder="Thiết kế backend điều phối bay tự động...&#10;Xây dựng luồng mở khoang hàng bằng QR..."
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </Field>
+
+                  <Field label="Các đóng góp / Điểm nổi bật (Tiếng Anh - mỗi dòng 1 ý)">
+                    <textarea
+                      rows={3}
+                      value={expForm.pointsEnText}
+                      onChange={(e) => setExpForm({ ...expForm, pointsEnText: e.target.value })}
+                      placeholder="Engineered automated drone dispatch backend...&#10;Developed secure QR cargo handover..."
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </Field>
+
+                  <Field label="Thứ tự hiển thị">
+                    <SI
+                      type="number"
+                      value={expForm.display_order}
+                      onChange={(e) => setExpForm({ ...expForm, display_order: Number(e.target.value) })}
+                    />
+                  </Field>
+
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setExpOpen(false)}
+                      className="text-[var(--secondary)]"
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={expSaving}
+                      className={styles.primary}
+                    >
+                      {expSaving ? "Đang lưu…" : expEditId ? "Cập nhật" : "Tạo mới"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
+
+        {/* ── CHATBOT KNOWLEDGE ── */}
+        {tab === "chatbot" && (
+          <>
+            <div className={styles.sectionHeading}>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">
+                Tri thức & Chủ đề Chatbot{" "}
+                <span className="text-[var(--secondary)] text-sm font-normal">
+                  ({chatbotTopics.length})
+                </span>
+              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync("chatbot")}
+                  disabled={syncing}
+                  className="border-[var(--line)] text-[var(--secondary)] hover:text-[var(--ink)] hover:bg-[var(--panel)]"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                  Đồng bộ từ bộ tri thức gốc
+                </Button>
+                <Button
+                  onClick={openAddChatbot}
+                  className={styles.primary}
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Thêm chủ đề mới
+                </Button>
+              </div>
+            </div>
+
+            <div className={styles.tablePanel}>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[var(--line)] hover:bg-transparent">
+                    {sortHeading("chatbot", "topic_id", "Mã chủ đề")}
+                    {sortHeading("chatbot", "label", "Tiêu đề")}
+                    <TableHead className="text-[var(--secondary)] font-medium">Từ khóa kích hoạt</TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium">Câu trả lời</TableHead>
+                    <TableHead className="text-[var(--secondary)] font-medium text-right">
+                      Thao tác
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {chatbotLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center text-[var(--secondary)] py-10"
+                      >
+                        Đang tải…
+                      </TableCell>
+                    </TableRow>
+                  ) : chatbotTopics.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-12">
+                        <div className="flex flex-col items-center gap-3 text-[var(--secondary)]">
+                          <Bot className="w-8 h-8" />
+                          <p className="text-sm">
+                            Chưa có chủ đề nào trong cơ sở tri thức. Nhấn "Thêm chủ đề" hoặc "Đồng bộ từ bộ tri thức gốc".
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSync("chatbot")}
+                            disabled={syncing}
+                            className="mt-1 border-[var(--line)] text-[var(--ink)] hover:bg-[var(--line)]"
+                          >
+                            <RefreshCw className={`mr-2 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+                            Đồng bộ toàn bộ tri thức mẫu
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    sortRows(chatbotTopics, sorts.chatbot.field as keyof ChatbotTopicItem | null, sorts.chatbot.direction).map((t) => (
+                      <TableRow
+                        key={t.id}
+                        className="border-[var(--line)] hover:bg-[var(--panel)]"
+                      >
+                        <TableCell className="font-mono text-xs text-[var(--accent)] font-medium">
+                          {t.topic_id}
+                        </TableCell>
+                        <TableCell className="font-medium text-[var(--ink)]">
+                          {t.label}
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)] text-xs max-w-xs">
+                          <div className="flex flex-wrap gap-1">
+                            {(t.keywords || []).slice(0, 5).map((kw) => (
+                              <Badge key={kw} variant="outline" className="border-[var(--line)] text-[10px] px-1.5 py-0">
+                                {kw}
+                              </Badge>
+                            ))}
+                            {(t.keywords || []).length > 5 && (
+                              <span className="text-[10px] text-[var(--secondary)]">
+                                +{(t.keywords || []).length - 5}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-[var(--secondary)] text-xs max-w-sm truncate">
+                          {t.response}
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => editChatbot(t)}
+                            aria-label="Chỉnh sửa"
+                            className="h-8 w-8 hover:text-[var(--highlight)] hover:bg-[var(--panel)]"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteChatbot(t.id)}
+                            aria-label="Xóa"
+                            className="h-8 w-8 hover:text-[var(--danger)] hover:bg-[var(--panel)]"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <Dialog open={chatbotOpen} onOpenChange={setChatbotOpen} className={styles.dialogShell}>
+              <DialogContent className={`${styles.dialog} max-w-2xl max-h-[88vh] overflow-y-auto no-scrollbar`} data-admin-dialog>
+                <DialogHeader>
+                  <DialogTitle className="text-[var(--ink)]">
+                    {chatbotEditId ? "Sửa tri thức chatbot" : "Thêm chủ đề tri thức mới"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleChatbotSubmit} className="space-y-4 pt-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Mã chủ đề (Topic ID duy nhất, vd: contact, skills, backend)">
+                      <SI
+                        placeholder="vd: contact"
+                        value={chatbotForm.topic_id}
+                        onChange={(e) => setChatbotForm({ ...chatbotForm, topic_id: e.target.value.toLowerCase().trim() })}
+                        required
+                      />
+                    </Field>
+                    <Field label="Tiêu đề hiển thị (vd: Thông tin liên hệ, Kỹ năng)">
+                      <SI
+                        placeholder="vd: Thông tin liên hệ"
+                        value={chatbotForm.label}
+                        onChange={(e) => setChatbotForm({ ...chatbotForm, label: e.target.value })}
+                        required
+                      />
+                    </Field>
+                  </div>
+
+                  <Field label="Từ khóa kích hoạt (Cách nhau bằng dấu phẩy hoặc xuống dòng)">
+                    <textarea
+                      rows={2}
+                      value={chatbotForm.keywordsText}
+                      onChange={(e) => setChatbotForm({ ...chatbotForm, keywordsText: e.target.value })}
+                      placeholder="liên hệ, email, gmail, sdt, số điện thoại, facebook, github, linkedln..."
+                      required
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-sm focus:outline-none focus:border-[var(--accent)] font-mono text-xs"
+                    />
+                    <p className="text-xs text-[var(--secondary)] mt-1">
+                      Khi người dùng gõ câu có chứa một trong các từ khóa này, chatbot sẽ đối soát và ưu tiên trả lời.
+                    </p>
+                  </Field>
+
+                  <Field label="Câu trả lời của Bot (Tiếng Việt)">
+                    <textarea
+                      rows={4}
+                      value={chatbotForm.response}
+                      onChange={(e) => setChatbotForm({ ...chatbotForm, response: e.target.value })}
+                      placeholder="Nội dung câu trả lời gửi đến người dùng..."
+                      required
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </Field>
+
+                  <Field label="Câu trả lời của Bot (Tiếng Anh - tùy chọn)">
+                    <textarea
+                      rows={4}
+                      value={chatbotForm.response_en}
+                      onChange={(e) => setChatbotForm({ ...chatbotForm, response_en: e.target.value })}
+                      placeholder="Bot response in English..."
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--ink)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                    />
+                  </Field>
+
+                  <Field label="Thứ tự ưu tiên hiển thị">
+                    <SI
+                      type="number"
+                      value={chatbotForm.display_order}
+                      onChange={(e) => setChatbotForm({ ...chatbotForm, display_order: Number(e.target.value) })}
+                    />
+                  </Field>
+
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setChatbotOpen(false)}
+                      className="text-[var(--secondary)]"
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={chatbotSaving}
+                      className={styles.primary}
+                    >
+                      {chatbotSaving ? "Đang lưu…" : chatbotEditId ? "Cập nhật" : "Tạo mới"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
+
         </main>
       </div>
     </div>

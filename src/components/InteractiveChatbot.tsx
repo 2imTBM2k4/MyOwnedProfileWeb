@@ -19,7 +19,9 @@ import {
   INITIAL_BOT_MESSAGE,
   findAnswer,
   type QuickAction,
+  type ChatTopic,
 } from "@/data/chatbotKnowledge";
+import type { ChatbotTopicItem } from "@/lib/profile-content";
 
 interface Message {
   id: string;
@@ -42,6 +44,7 @@ export default function InteractiveChatbot() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [customTopics, setCustomTopics] = useState<ChatTopic[]>([]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,6 +55,25 @@ export default function InteractiveChatbot() {
     const now = new Date();
     return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
+
+  // Fetch dynamic chatbot topics from database
+  useEffect(() => {
+    fetch("/api/chatbot")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: ChatTopic[] = data.map((item: ChatbotTopicItem) => ({
+            id: item.topic_id || item.id,
+            label: item.label,
+            keywords: Array.isArray(item.keywords) ? item.keywords : [],
+            response: item.response,
+            response_en: item.response_en || undefined,
+          }));
+          setCustomTopics(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -160,7 +182,10 @@ export default function InteractiveChatbot() {
     setMessages((prev) => [...prev, userMessage]);
     if (!textToSend) setInputValue("");
 
-    const answer = findAnswer(text);
+    const answer = findAnswer(
+      text,
+      customTopics.length > 0 ? customTopics : undefined
+    );
     streamBotReply(answer.text, answer.quickActions);
   };
 

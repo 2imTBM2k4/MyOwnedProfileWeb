@@ -31,6 +31,43 @@ export type Gear = {
   notes?: string | null;
 };
 
+export type SkillItem = {
+  id: string;
+  name: string;
+  slug: string;
+  category?: string | null;
+  invert?: boolean | null;
+  display_order?: number | null;
+};
+
+export type ExperienceItem = {
+  id: string;
+  company: string;
+  role: string;
+  role_en?: string | null;
+  summary?: string | null;
+  summary_en?: string | null;
+  points?: string[] | null;
+  points_en?: string[] | null;
+  period?: string | null;
+  period_en?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  is_current?: boolean | null;
+  project_link?: string | null;
+  display_order?: number | null;
+};
+
+export type ChatbotTopicItem = {
+  id: string;
+  topic_id: string;
+  label: string;
+  keywords: string[];
+  response: string;
+  response_en?: string | null;
+  display_order?: number | null;
+};
+
 export function validPayload(key: string, value: unknown): boolean {
   const record = (item: unknown): item is Record<string, unknown> =>
     item !== null && typeof item === "object" && !Array.isArray(item);
@@ -50,6 +87,12 @@ export function validPayload(key: string, value: unknown): boolean {
       (item.status == null || ["active", "retired"].includes(String(item.status)));
     if (key === "socialLinks") return typeof item.platform === "string" &&
       typeof item.url === "string" && strings(item, ["display_name"]);
+    if (key === "skills") return typeof item.name === "string" && typeof item.slug === "string" &&
+      strings(item, ["category"]);
+    if (key === "experiences") return typeof item.company === "string" && typeof item.role === "string" &&
+      strings(item, ["role_en", "summary", "summary_en", "period", "period_en", "start_date", "end_date", "project_link"]);
+    if (key === "chatbot") return typeof item.topic_id === "string" && typeof item.label === "string" &&
+      typeof item.response === "string" && Array.isArray(item.keywords);
     return false;
   });
 }

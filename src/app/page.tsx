@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import FloatingNavbar from "@/components/FloatingNavbar";
 import SmoothScroll from "@/components/SmoothScroll";
 import InteractiveChatbot from "@/components/InteractiveChatbot";
@@ -9,14 +10,36 @@ import ContactModal from "@/components/ContactModal";
 import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { PROJECT_PREVIEWS } from "@/data/project-previews";
 import { useLanguage } from "@/context/LanguageContext";
-import { orderProjects, publicUrl, validPayload, type Gear, type Project } from "@/lib/profile-content";
+import {
+  orderProjects,
+  publicUrl,
+  validPayload,
+  type Gear,
+  type Project,
+  type SkillItem,
+  type ExperienceItem,
+} from "@/lib/profile-content";
 import styles from "./profile.module.css";
 
 type Profile = { username: string | null; bio: string | null; avatar_url: string | null; cover_url: string | null };
 type SocialLink = { id: string; platform: string; url: string; display_name: string | null };
-type SiteData = { profile: Profile | null; projects: Project[]; gears: Gear[]; socialLinks: SocialLink[] };
+type SiteData = {
+  profile: Profile | null;
+  projects: Project[];
+  gears: Gear[];
+  socialLinks: SocialLink[];
+  skills?: SkillItem[];
+  experiences?: ExperienceItem[];
+};
 
-const EMPTY_DATA: SiteData = { profile: null, projects: [], gears: [], socialLinks: [] };
+const EMPTY_DATA: SiteData = {
+  profile: null,
+  projects: [],
+  gears: [],
+  socialLinks: [],
+  skills: [],
+  experiences: [],
+};
 const CACHE_KEY = "site_data_cache";
 const CACHE_TTL = 5 * 60 * 1000;
 const EMAIL = "2004.tranbinhminh@gmail.com";
@@ -25,7 +48,12 @@ const SOURCES = [
   ["projects", "/api/projects"],
   ["gears", "/api/gears"],
   ["socialLinks", "/api/social-links"],
+  ["skills", "/api/skills"],
+  ["experiences", "/api/experiences"],
 ] as const;
+
+const projectLayoutId = (project: Project) =>
+  `project-${String(project.id || project.title).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
 const Arrow = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -166,21 +194,58 @@ function Magnetic({ href, className, children }: { href: string; className: stri
   );
 }
 
-function MagneticButton({ onClick, className, children }: { onClick: () => void; className: string; children: ReactNode }) {
+function MagneticButton({
+  onClick,
+  className,
+  children,
+  layoutId = "say-hi-contact-modal",
+}: {
+  onClick: () => void;
+  className: string;
+  children: ReactNode;
+  layoutId?: string;
+}) {
+  const reducedMotion = useReducedMotion();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 280, damping: 22, mass: 0.5 });
+  const springY = useSpring(y, { stiffness: 280, damping: 22, mass: 0.5 });
+
   const move = (e: MouseEvent<HTMLButtonElement>) => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (reducedMotion) return;
     const r = e.currentTarget.getBoundingClientRect();
-    e.currentTarget.style.setProperty("--mx", `${(e.clientX - r.left - r.width / 2) * 0.3}px`);
-    e.currentTarget.style.setProperty("--my", `${(e.clientY - r.top - r.height / 2) * 0.3}px`);
+    const middleX = e.clientX - (r.left + r.width / 2);
+    const middleY = e.clientY - (r.top + r.height / 2);
+    x.set(middleX * 0.35);
+    y.set(middleY * 0.35);
   };
-  const reset = (e: MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.setProperty("--mx", "0px");
-    e.currentTarget.style.setProperty("--my", "0px");
+
+  const reset = () => {
+    x.set(0);
+    y.set(0);
   };
+
   return (
-    <button type="button" onClick={onClick} className={`${styles.magnetic} ${className}`} onMouseMove={move} onMouseLeave={reset}>
+    <motion.button
+      type="button"
+      layoutId={reducedMotion ? undefined : layoutId}
+      onClick={onClick}
+      className={className}
+      onMouseMove={move}
+      onMouseLeave={reset}
+      style={{
+        x: springX,
+        y: springY,
+      }}
+      whileHover={reducedMotion ? undefined : { scale: 1.06 }}
+      whileTap={reducedMotion ? undefined : { scale: 0.94 }}
+      transition={{
+        layout: { type: "spring", stiffness: 260, damping: 28, mass: 0.85 },
+        scale: { type: "spring", stiffness: 400, damping: 25 },
+      }}
+    >
       <span>{children}</span>
-    </button>
+    </motion.button>
   );
 }
 
@@ -363,6 +428,39 @@ export default function HomePage() {
   const activeGears = data.gears.filter((gear) => gear.status === "active");
   const displayGears = activeGears.length > 0 ? activeGears : defaultGears;
 
+  const displaySkills = data.skills && data.skills.length > 0
+    ? data.skills.map((s) => s.name)
+    : skills;
+
+  const displayLogos: [string, string, boolean?][] = data.skills && data.skills.length > 0
+    ? data.skills.map((s) => [s.name, s.slug, Boolean(s.invert)])
+    : logos;
+
+  const jobsList = data.experiences && data.experiences.length > 0
+    ? data.experiences.map((exp) => {
+        const period = (locale === "en" && exp.period_en)
+          ? exp.period_en
+          : (exp.period || (exp.is_current ? t.proto.present : `${exp.start_date || ""} - ${exp.end_date || ""}`));
+        return {
+          role: (locale === "en" && exp.role_en) ? exp.role_en : exp.role,
+          company: exp.company,
+          summary: (locale === "en" && exp.summary_en) ? exp.summary_en : (exp.summary || ""),
+          points: (locale === "en" && exp.points_en && exp.points_en.length > 0) ? exp.points_en : (exp.points || []),
+          period,
+          is_current: exp.is_current ?? true,
+          project_link: exp.project_link || "#work",
+        };
+      })
+    : Object.values(t.proto.jobs).map((j) => ({
+        role: j.role,
+        company: j.company,
+        summary: j.summary,
+        points: j.points,
+        period: t.proto.present,
+        is_current: true,
+        project_link: "#work",
+      }));
+
   const socialLinks =
     data.socialLinks.length > 0
       ? data.socialLinks
@@ -375,8 +473,6 @@ export default function HomePage() {
             platform: link.platform,
           }))
       : defaultSocials;
-
-  const jobsList = Object.values(t.proto.jobs);
 
   return (
     <div className={styles.site}>
@@ -443,7 +539,7 @@ export default function HomePage() {
         <div className={styles.marquee} aria-label={t.proto.skillsAria}>
           {[0, 1].map((row) => (
             <div className={`${styles.track} ${row ? styles.reverse : ""}`} key={row} aria-hidden={row === 1}>
-              {[...skills, ...skills].map((skill, i) => (
+              {[...displaySkills, ...displaySkills].map((skill, i) => (
                 <span key={i}>
                   {skill}
                   <i>✦</i>
@@ -487,8 +583,9 @@ export default function HomePage() {
               const previewImg = p.image_url || (p.github_url ? PROJECT_PREVIEWS[p.github_url] : null);
 
               return (
-                <article
+                <motion.article
                   key={p.id || p.title}
+                  layoutId={projectLayoutId(p)}
                   className={`${styles.card} ${tone} ${styles.cardClickable}`}
                   onClick={() => setSelectedProject(p)}
                   onMouseMove={tilt}
@@ -533,7 +630,7 @@ export default function HomePage() {
                       ))}
                     </div>
                   </div>
-                </article>
+                </motion.article>
               );
             })}
           </div>
@@ -548,24 +645,28 @@ export default function HomePage() {
             </h2>
           </div>
           <ol className={styles.timeline}>
-            {jobsList.map((job) => (
-              <li className={styles.job} key={job.company} data-reveal onMouseMove={tilt} onMouseLeave={untilt}>
+            {jobsList.map((job, idx) => (
+              <li className={styles.job} key={`${job.company}-${idx}`} data-reveal onMouseMove={tilt} onMouseLeave={untilt}>
                 <div className={styles.jobWhen}>
-                  <span className={styles.live}>
-                    <i /> {t.proto.current}
-                  </span>
-                  <p>{t.proto.present}</p>
+                  {job.is_current ? (
+                    <span className={styles.live}>
+                      <i /> {t.proto.current}
+                    </span>
+                  ) : null}
+                  <p>{job.period}</p>
                 </div>
                 <div className={styles.jobMain}>
                   <h3>{job.role}</h3>
                   <p className={styles.company}>@ {job.company}</p>
-                  <p className={styles.jobSummary}>{job.summary}</p>
-                  <ul>
-                    {job.points.map((point) => (
-                      <li key={point}>{point}</li>
-                    ))}
-                  </ul>
-                  <a className={`${styles.link} ${styles.smallInline}`} href="#work">
+                  {job.summary && <p className={styles.jobSummary}>{job.summary}</p>}
+                  {job.points && job.points.length > 0 && (
+                    <ul>
+                      {job.points.map((point, pIdx) => (
+                        <li key={pIdx}>{point}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <a className={`${styles.link} ${styles.smallInline}`} href={job.project_link || "#work"}>
                     {t.proto.seeProject} <Arrow />
                   </a>
                 </div>
@@ -585,7 +686,7 @@ export default function HomePage() {
             </div>
           </div>
           <ul className={styles.logos} data-reveal>
-            {logos.map(([name, slug, invert]) => (
+            {displayLogos.map(([name, slug, invert]) => (
               <li key={name} className={`${styles.logoItem} ${invert ? styles.invert : ""}`} tabIndex={0}>
                 <span className={styles.logoTile}>
                   <img src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${slug}/${slug}-original.svg`} alt={name} loading="lazy" />
@@ -647,7 +748,7 @@ export default function HomePage() {
           {t.proto.contactTitle[3]}
         </h2>
         <div className={styles.contact} data-reveal>
-          <MagneticButton onClick={() => setIsContactOpen(true)} className={styles.btnCircle}>
+          <MagneticButton layoutId="say-hi-contact-modal" onClick={() => setIsContactOpen(true)} className={styles.btnCircle}>
             Say hi <Arrow />
           </MagneticButton>
           <div>
@@ -694,6 +795,7 @@ export default function HomePage() {
       {/* Say Hi Contact Modal */}
       <ContactModal
         isOpen={isContactOpen}
+        layoutId="say-hi-contact-modal"
         onClose={() => setIsContactOpen(false)}
         targetEmail={EMAIL}
         locale={locale}
@@ -702,6 +804,7 @@ export default function HomePage() {
       {/* Project Detail Popup Modal */}
       <ProjectDetailModal
         project={selectedProject}
+        layoutId={selectedProject ? projectLayoutId(selectedProject) : undefined}
         isOpen={!!selectedProject}
         onClose={() => setSelectedProject(null)}
         locale={locale}

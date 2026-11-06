@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient } from '@/lib/supabase-admin';
+import { CHAT_TOPICS } from '@/data/chatbotKnowledge';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ const DEFAULT_PROJECTS = [
     title: 'Portfolio',
     description: 'Trang hồ sơ cá nhân và bảng quản trị nội dung xây dựng bằng Next.js, tích hợp Supabase và xác thực chữ ký số.',
     github_url: 'https://github.com/2imTBM2k4/MyOwnedProfileWeb',
-    demo_url: 'https://silentboiz.vercel.app/',
+    demo_url: 'https://bming.vercel.app/',
     status: 'active' as const,
     tags: ['Next.js', 'TypeScript', 'PostgreSQL', 'Supabase'],
     tone: 'violet',
@@ -45,14 +46,55 @@ const DEFAULT_GEARS = [
 const DEFAULT_SOCIALS = [
   { platform: 'LinkedIn', url: 'https://www.linkedin.com/in/2imtbm2k4', display_name: 'Bình Minh Trần', display_order: 1 },
   { platform: 'GitHub', url: 'https://github.com/2imTBM2k4', display_name: '@2imTBM2k4', display_order: 2 },
-  { platform: 'Instagram', url: 'https://www.instagram.com/silentboiz.profile/', display_name: '@silentboiz.profile', display_order: 3 },
-  { platform: 'Facebook', url: 'https://www.facebook.com/silentboiz.profile/', display_name: 'Trần Bình Minh', display_order: 4 },
+  { platform: 'Instagram', url: 'https://www.instagram.com/bming.profile/', display_name: '@bming.profile', display_order: 3 },
+  { platform: 'Facebook', url: 'https://www.facebook.com/bming.profile/', display_name: 'Trần Bình Minh', display_order: 4 },
 ];
 
 const DEFAULT_PROFILE = {
-  username: 'silentboiz',
+  username: 'bming',
   bio: 'Lập trình viên Backend — Sinh viên năm cuối ngành Kỹ thuật Phần mềm. Mình tập trung xây dựng các hệ thống backend ổn định, xử lý dữ liệu tin cậy và tối ưu luồng xử lý ứng dụng.',
 };
+
+const DEFAULT_SKILLS = [
+  { name: 'Node.js', slug: 'nodejs', category: 'Backend', invert: false, display_order: 1 },
+  { name: 'Express', slug: 'express', category: 'Backend', invert: true, display_order: 2 },
+  { name: 'MongoDB', slug: 'mongodb', category: 'Database', invert: false, display_order: 3 },
+  { name: 'TypeScript', slug: 'typescript', category: 'Language', invert: false, display_order: 4 },
+  { name: 'JavaScript', slug: 'javascript', category: 'Language', invert: false, display_order: 5 },
+  { name: 'Socket.io', slug: 'socketio', category: 'Real-time', invert: true, display_order: 6 },
+  { name: 'PostgreSQL', slug: 'postgresql', category: 'Database', invert: false, display_order: 7 },
+  { name: 'Supabase', slug: 'supabase', category: 'Backend', invert: false, display_order: 8 },
+  { name: 'Docker', slug: 'docker', category: 'DevOps', invert: false, display_order: 9 },
+  { name: 'Postman', slug: 'postman', category: 'Tools', invert: false, display_order: 10 },
+  { name: 'Git', slug: 'git', category: 'Tools', invert: false, display_order: 11 },
+  { name: 'GitHub', slug: 'github', category: 'Tools', invert: true, display_order: 12 },
+  { name: 'Next.js', slug: 'nextjs', category: 'Frontend', invert: true, display_order: 13 },
+];
+
+const DEFAULT_EXPERIENCES = [
+  {
+    company: 'DroneFood',
+    role: 'Backend & System Developer',
+    role_en: 'Backend & System Developer',
+    summary: 'Nền tảng giao đồ ăn tự hành bằng Drone & Shipper',
+    summary_en: 'Autonomous drone food delivery platform',
+    points: [
+      'Thiết kế backend điều phối bay tự động từ Hub dựa trên khoảng cách và mức pin',
+      'Xây dựng luồng mở khoang hàng bằng QR bảo mật và kiểm định an toàn Preflight',
+      'Tích hợp Socket.IO tracking lộ trình thời gian thực và tự động fallback sang Shipper',
+    ],
+    points_en: [
+      'Engineered automated drone dispatch backend based on battery level & distance',
+      'Developed secure QR cargo handover & preflight safety verification flow',
+      'Integrated Socket.IO for real-time telemetry with automated 10-minute fallback to shipper',
+    ],
+    period: 'Hiện tại',
+    period_en: 'Present',
+    is_current: true,
+    project_link: '#work',
+    display_order: 1,
+  },
+];
 
 export async function POST(request: Request) {
   try {
@@ -65,6 +107,9 @@ export async function POST(request: Request) {
       gears: 0,
       socials: 0,
       profile: false,
+      skills: 0,
+      experiences: 0,
+      chatbot: 0,
     };
 
     // 1. Đồng bộ Projects
@@ -77,7 +122,6 @@ export async function POST(request: Request) {
         if (existingId) {
           const { error } = await supabase.from('projects').update(p).eq('id', existingId);
           if (error && error.code === '42703') {
-            // Fallback nếu chưa chạy SQL thêm case study columns
             const { kind, problem, did, result, tone, ...basic } = p;
             await supabase.from('projects').update(basic).eq('id', existingId);
           }
@@ -133,6 +177,63 @@ export async function POST(request: Request) {
         await supabase.from('profile').insert(DEFAULT_PROFILE);
       }
       results.profile = true;
+    }
+
+    // 5. Đồng bộ Skills
+    if (scope === 'all' || scope === 'skills') {
+      const { data: existingSkills } = await supabase.from('skills').select('id, name');
+      const existingMap = new Map((existingSkills || []).map((s) => [s.name.trim().toLowerCase(), s.id]));
+
+      for (const sk of DEFAULT_SKILLS) {
+        const existingId = existingMap.get(sk.name.trim().toLowerCase());
+        if (existingId) {
+          await supabase.from('skills').update(sk).eq('id', existingId);
+        } else {
+          await supabase.from('skills').insert(sk);
+        }
+        results.skills++;
+      }
+    }
+
+    // 6. Đồng bộ Experiences
+    if (scope === 'all' || scope === 'experiences') {
+      const { data: existingExps } = await supabase.from('experiences').select('id, company');
+      const existingMap = new Map((existingExps || []).map((e) => [e.company.trim().toLowerCase(), e.id]));
+
+      for (const exp of DEFAULT_EXPERIENCES) {
+        const existingId = existingMap.get(exp.company.trim().toLowerCase());
+        if (existingId) {
+          await supabase.from('experiences').update(exp).eq('id', existingId);
+        } else {
+          await supabase.from('experiences').insert(exp);
+        }
+        results.experiences++;
+      }
+    }
+
+    // 7. Đồng bộ Chatbot
+    if (scope === 'all' || scope === 'chatbot') {
+      const { data: existingTopics } = await supabase.from('chatbot_knowledge').select('id, topic_id');
+      const existingMap = new Map((existingTopics || []).map((t) => [t.topic_id.trim().toLowerCase(), t.id]));
+
+      for (let i = 0; i < CHAT_TOPICS.length; i++) {
+        const topic = CHAT_TOPICS[i];
+        const payload = {
+          topic_id: topic.id,
+          label: topic.label,
+          keywords: topic.keywords,
+          response: topic.response,
+          response_en: topic.response_en || null,
+          display_order: i + 1,
+        };
+        const existingId = existingMap.get(topic.id.trim().toLowerCase());
+        if (existingId) {
+          await supabase.from('chatbot_knowledge').update(payload).eq('id', existingId);
+        } else {
+          await supabase.from('chatbot_knowledge').insert(payload);
+        }
+        results.chatbot++;
+      }
     }
 
     return NextResponse.json({

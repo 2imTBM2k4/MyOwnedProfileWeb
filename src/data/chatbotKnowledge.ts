@@ -4,6 +4,7 @@ export interface ChatTopic {
   iconName?: string;
   keywords: string[];
   response: string;
+  response_en?: string;
 }
 
 export interface QuickAction {
@@ -269,20 +270,21 @@ function stripAccents(str: string): string {
 
 /**
  * Smart matching algorithm using multi-factor relevance scoring.
- * Returns both the formatted response and any relevant quick actions (GitHub, LinkedIn, Mail).
+ * Accepts optional dynamic topics from database.
  */
-export function findAnswer(query: string): BotAnswer {
+export function findAnswer(query: string, topics?: ChatTopic[]): BotAnswer {
   const normalized = query.trim().toLowerCase();
   if (!normalized) {
     return { text: DEFAULT_FALLBACK_RESPONSE };
   }
 
   const normalizedNoAccents = stripAccents(normalized);
+  const activeTopics = topics && topics.length > 0 ? topics : CHAT_TOPICS;
 
   let bestTopic: ChatTopic | null = null;
   let highestScore = 0;
 
-  for (const topic of CHAT_TOPICS) {
+  for (const topic of activeTopics) {
     let score = 0;
 
     // Check exact match with topic label
